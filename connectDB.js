@@ -2,10 +2,10 @@ const mysql = require("mysql");
 
 function newConnection() {
     let conn = mysql.createConnection({
-        host:'104.198.141.4',
+        host:'34.69.81.146',
         user: 'root',
         password: 'root',
-        database: 'skedul_db'
+        database: 'databasics'
     });
 
     return conn;
