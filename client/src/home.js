@@ -38,7 +38,7 @@ export default class Example extends React.Component {
     const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     this.setState({customer: value})
   }
-  //when using form, could not introduce two submits
+  
   login = async e => {
     
     alert (this.state.username);
@@ -59,32 +59,45 @@ export default class Example extends React.Component {
     
   };
   signUp = async e => {
-    alert("Go to registration page");
-    
+    alert("Go to registration page");    
   };
   
   render() {
     return (
-      <div className="App">
+      <div className="main">
+        <h3> Login </h3>
         <form onSubmit ={this.login}>
-          <div className="input-group">
-            <label htmlFor="username">Username </label>
-            <input type="text" name="username" onChange={this.handleUserNameChange} />
-          </div>
-          <div className="input-group">
-            <label htmlFor="password">Password </label>
-            <input type="text" name="password" onChange={this.handlePasswordChange} />
-          </div>
-          <br />
-          <div className="input-group">
-            <label htmlFor="customer">Login as Customer </label>
-            <input type="checkbox" name="customer" onChange={this.handleCheck} />
+          <div className="username">
+            <label>Username: </label>
+            <input 
+              type="text" 
+              value = {this.state.username}
+              onChange={this.handleUserNameChange}  
+            />
           </div>
           <br />
-          <button className="primary">Login</button>
+          <div className="password">
+            <label>Password: </label>
+            <input 
+              type="text" 
+              value = {this.state.password}
+              onChange={this.handlePasswordChange} 
+            />
+          </div>
+          <br />
+          <div className="customer">
+            <label>Login as Customer: </label>
+            <input 
+              type ="checkbox" 
+              value = {this.state.customer} 
+              onChange={this.handleCheck} 
+            />
+          </div>
+          <br />
+          <button type="submit">Login</button>
         </form>
         <br />
-        <button className="secondary" onClick={this.signUp}>
+        <button className="register" onClick={this.signUp}>
           Sign Up
         </button><br /><br />
       </div>
