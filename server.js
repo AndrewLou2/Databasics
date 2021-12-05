@@ -1,5 +1,5 @@
 const express = require("express");
-const newConnection = require("./connect_db");
+const newConnection = require("./connectDB");
 const path = require("path");
 const { nextTick } = require("process");
 
@@ -8,7 +8,7 @@ const port = 80;
 
 const checkCredentials = (username, password, customer) => {
     const conn = newConnection();
-    const table;
+    let table;
     const user = {};
     customer? table = "Customers" : table = "Employees";
     conn.query(
@@ -22,14 +22,15 @@ const checkCredentials = (username, password, customer) => {
     return user;
 }
 
+app.get('/', (req, res, err) => res.send("hi"));
 
 app.get('/db/finishedGoods', (req, res, err) => {
-    let filter = req.body.filter;
+    //let filter = req.body.filter;
     const conn = newConnection();
     conn.query(
         `
         SELECT Item_Description, Category, Sub_Category, Size, RM_Group, Price FROM Materials
-        Where Category = ${filter.Category} and Sub_Category = ${filter.Sub_Category} and RM_Group = ${filter.RM_Group}
+        Where Group_ID = "FG";
         `, (err, rows, fields) => res.send(rows)
     );
     conn.end();
