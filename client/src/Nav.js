@@ -9,6 +9,14 @@ export default class Example extends React.Component {
   render() {
     return (
       <div>
+        <Nav>
+          <NavItem>
+            <NavLink href="/home/">Home</NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink href="/employee/">Employee</NavLink>
+          </NavItem>
+        </Nav>
         <Routes>
           <Route path="/home" element={<Home />} />
           <Route path="/employee" element={<Employee />} />
