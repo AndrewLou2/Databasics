@@ -1,7 +1,6 @@
 const express = require("express");
 const newConnection = require("./connectDB");
 const path = require("path");
-const { nextTick } = require("process");
 
 const app = express();
 const port = 80;
