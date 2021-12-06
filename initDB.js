@@ -156,7 +156,7 @@ conn.query(
         ,password varchar(255)
         ,Address varchar(255)
         ,Contact varchar(255)
-        ,User_Rights int default 1
+        ,User_Rights int default 2
         ,PRIMARY KEY (ID)
         ,FOREIGN KEY (User_Rights) REFERENCES User_Rights(ID)
         ,UNIQUE(username)
