@@ -226,6 +226,7 @@ app.post('/db/listproductrm', (req, res, err) => {
 app.post('/db/register', (req, res, err) => {
     //console.log(req.body.user);
     if (Object.keys(req.user).length > 0) res.send(JSON.stringify("Username Unavailable"));
+    else if (Object.keys(req.user).length == 0) res.send(JSON.stringify("All fields are mandatory"));
     else {
         let newUser = req.body.user;
         const conn = newConnection();
