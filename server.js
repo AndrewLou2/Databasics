@@ -214,6 +214,7 @@ app.post('/db/login', (req, res, err) => {
 })
 
 app.get('/db/orderHistory', (req, res, err) => {
+    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `Category`;
@@ -226,7 +227,7 @@ app.get('/db/orderHistory', (req, res, err) => {
     let rm = makeSqlString(filter.material, true);
     if (filter.material.length == 0) rm = `RM_Group`;
 
-    let id = req.body.user.ID;
+    let id = req.user.ID;
     const conn = newConnection();
     conn.query(
         `
@@ -239,11 +240,12 @@ app.get('/db/orderHistory', (req, res, err) => {
 })
 
 app.get('/db/placeorder', (req, res, err) => {
-    let id = req.body.user.ID;
+    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
+    let id = req.user.ID;
     let material = req.body.materialid;
     let qty = req.body.qty;
     const conn = newConnection();
-    if (req.body.user.customer)
+    if (req.user.customer)
         conn.query(
             `
             INSERT INTO Demand_Orders (Material, Qty, Price, Customer, Order_Date)
@@ -269,55 +271,99 @@ app.get('/db/placeorder', (req, res, err) => {
 })
 
 app.get('/db/demandlist', (req, res, err) => {
+    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
+    if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     let filter = req.body.filter;
     let demandfilter = req.body.demandfilter;
     let category = makeSqlString(filter.category, true);
-    if (filter.category.length == 0) category = `Category`;
+    if (filter.category.length == 0) category = `m.Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
-    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
+    if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
     let size = makeSqlString(filter.size, false);
-    if (filter.size.length == 0) size = `Size`;
+    if (filter.size.length == 0) size = `m.Size`;
     let gauge = makeSqlString(filter.category, false);
-    if (filter.gauge.length == 0) gauge = `Gauge`;
+    if (filter.gauge.length == 0) gauge = `m.Gauge`;
     let rm = makeSqlString(filter.material, true);
-    if (filter.material.length == 0) rm = `RM_Group`;
+    if (filter.material.length == 0) rm = `m.RM_Group`;
     let status = makeSqlString(demandfilter.status, true)
-    if (demandfilter.status.length == 0) status = `Status`
+    if (demandfilter.status.length == 0) status = `d.Status`
+    let ordered_by = makeSqlString(demandfilter.ordered_by, false)
+    if (demandfilter.ordered_by.length == 0) ordered_by = `d.Ordered_By`
+    let customer = makeSqlString(demandfilter.customer, true)
+    if (demandfilter.customer.length == 0) customer = `d.Customer`
 
-    let id = req.body.user.ID;
     const conn = newConnection();
     conn.query(
         `
-        SELECT d.ID, m.Item_Description, d.Qty, d.Price, d,Status FROM Demand_Orders d
+        SELECT d.ID, m.Item_Description, d.Qty, d.Price, d.Status, d.Customer, d.Ordered_By FROM Demand_Orders d
         INNER JOIN Materials m on m.ID = d.Material
-        WHERE d.Customer = ${id} and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm}) and d.Status in (${status})))
+        WHERE (d.Customer in (${customer}) or d.Ordered_By in (${ordered_by}) and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm}) and d.Status in (${status})))
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
 
 app.get('/db/listdemandstatus', (req, res, err) => {
+    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
+    if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
-    if (filter.category.length == 0) category = `Category`;
+    if (filter.category.length == 0) category = `m2.Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
-    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
+    if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
     let size = makeSqlString(filter.size, false);
-    if (filter.size.length == 0) size = `Size`;
+    if (filter.size.length == 0) size = `m2.Size`;
     let gauge = makeSqlString(filter.category, false);
-    if (filter.gauge.length == 0) gauge = `Gauge`;
+    if (filter.gauge.length == 0) gauge = `m2.Gauge`;
     let rm = makeSqlString(filter.material, true);
-    if (filter.material.length == 0) rm = `RM_Group`;
-
-    let id = req.body.user.ID;
+    if (filter.material.length == 0) rm = `m2.RM_Group`;
+    let ordered_by = makeSqlString(demandfilter.ordered_by, false)
+    if (demandfilter.ordered_by.length == 0) ordered_by = `d.Ordered_By`
+    let customer = makeSqlString(demandfilter.customer, true)
+    if (demandfilter.customer.length == 0) customer = `d.Customer`
     const conn = newConnection();
     conn.query(
         `
-        SELECT d.Status, sum(EXISTS(SELECT * FROM Materials m2
-            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge = m.Gauge and m2.RM_Group in (${rm}))) as Available FROM demand_orders d
-            Where m.Group_ID = "FG"
-            Group by m.Gauge;
+        SELECT d.Status, sum(EXISTS(SELECT * FROM Demand_Orders d2
+            INNER JOIN Materials m2 on m2.ID = d2.Material
+            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}))) as Available FROM demand_orders d
+            WHERE (d.Customer in (${customer}) or d.Ordered_By in (${ordered_by})
+            Group by d.status;
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
+    );
+    conn.end();
+})
+
+app.post('/db/approvedemand', (req, res, err) => {
+    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
+    if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
+    let id = req.user.ID;
+    let demandID = req.user.demandID;
+    const conn = newConnection();
+    conn.query(
+        `
+        UPDATE Demand_Orders SET Status="OPEN", Approved_By=${id} where ID = ${demandID} and Status="Closed" and (SELECT approve_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
+        `, (err, rows, fields) => {
+            if (err) res.send(JSON.stringify(false));
+            res.send(JSON.stringify(true));
+        }
+    );
+    conn.end();
+})
+
+app.post('/db/completedemand', (req, res, err) => {
+    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
+    if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
+    let id = req.user.ID;
+    let demandID = req.user.demandID;
+    const conn = newConnection();
+    conn.query(
+        `
+        UPDATE Demand_Orders SET Status="COMPLETE", Completion_Date=curdate() where ID = ${demandID} and Status="STAGED" and (SELECT complete_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
+        `, (err, rows, fields) => {
+            if (err) res.send(JSON.stringify(false));
+            res.send(JSON.stringify(true));
+        }
     );
     conn.end();
 })

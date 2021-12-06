@@ -112,6 +112,7 @@ conn.query(
         ,stage_demand bool default false
         ,complete_demand bool default false
         ,produce_supply bool default false
+        ,order_supply bool default false
         ,complete_supply bool default false
         ,PRIMARY KEY (ID)
         ,UNIQUE(description)

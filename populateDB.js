@@ -486,6 +486,7 @@ conn.query(
         ,stage_demand
         ,complete_demand
         ,produce_supply
+        ,order_supply
         ,complete_supply)
     values (
         "Admin"
@@ -502,8 +503,10 @@ conn.query(
         ,1
         ,1
         ,1
+        ,1
     ), (
         "Customer"
+        ,default
         ,default
         ,default
         ,default
