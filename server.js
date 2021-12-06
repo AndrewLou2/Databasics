@@ -9,21 +9,21 @@ const port = 80;
 const checkCredentials = (username, password, customer) => {
     const conn = newConnection();
     let table;
-    const user = {};
+    let user = {};
     customer? table = "Customers" : table = "Employees";
     conn.query(
         `
         SELECT * FROM ${table}
-        Where username = ${username} and password = ${password};
+        Where username = "${username}" and password = "${password}";
         `
         , (err, rows, fields) => {
-            if (err) return user;
+            if (err) console.log(err);
             if (rows.length > 0)
-                return {usr: rows[0].username, pwd:rows[0].password, cust:rows[0].customer, id:rows[0].ID};
+                user = {user: rows[0].username, password:rows[0].password, customer:customer, id:rows[0].ID};
+                return user;
         });
 
     conn.end();
-    return user;
 }
 
 const makeSqlString = (arr, isString) => {
@@ -40,6 +40,31 @@ const makeSqlString = (arr, isString) => {
 }
 
 app.use(express.json());
+
+app.use((req,res,next) => {
+    console.log(req.body.user);
+    let user = req.body.user;
+    let checkedUser = {};
+    const conn = newConnection();
+    let table;
+    user.customer? table = "Customers" : table = "Employees";
+    console.log(table);
+    conn.query(
+        `
+        SELECT * FROM ${table}
+        Where username = "${user.user}" and password = "${user.password}";
+        `
+        , (err, rows, fields) => {
+            if (err) console.log(err);
+            else if (rows.length > 0) {
+                console.log(rows);
+                checkedUser = {user: rows[0].username, password:rows[0].password, customer:user.customer, id:rows[0].ID};
+            }
+            req.user = checkedUser;
+            next();
+        });
+    conn.end();
+})
 
 app.get('/', (req, res, err) => res.send("hi"));
 
@@ -203,10 +228,10 @@ app.post('/db/register', (req, res, err) => {
 });
 
 app.post('/db/login', (req, res, err) => {
-    let user = req.body.user;
-    user = {...checkCredentials(user.user, user.password, user.customer)};
-    req.body.user = JSON.stringify(user);
-    res.send(JSON.stringify(req.body.user));
+    console.log(req.user)
+    let user =  req.user;
+    if (user != {}) res.send(user);
+    else res.send(false);
 })
 
 app.get('/db/orderHistory', (req, res, err) => {
