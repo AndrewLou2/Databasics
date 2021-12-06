@@ -29,7 +29,13 @@ export default class Example extends React.Component {
         subCategory: "",
         size: "",
         gauge: "",
-        rmGroup: ""
+        rmGroup: "",
+        loggedIn: false,
+        loggedInUser: "",
+        loggedInPwd: "",
+        loggedInAsCust: false,
+        orderMaterial: "",
+        orderQty: ""
     }
 }
   handleUserNameChange = event => {
@@ -64,14 +70,17 @@ export default class Example extends React.Component {
   handleRMGroupChange = event => {
     this.setState({rmGroup: event.target.value});
   }  
+
+  handleOrderMaterialChange = event => {
+    this.setState({orderMaterial: event.target.value});
+  }  
+
+  handleOrderQuantityChange = event => {
+    this.setState({orderQty: event.target.value});
+  }  
   
   login = async e => {
-    
-    alert (this.state.user);
-    alert (this.state.password);
-    alert (this.state.customer);
-    
-    var cust = true;
+       
     e.preventDefault();
     const response = await fetch('/db/login', {
       method: 'POST',      
@@ -81,7 +90,22 @@ export default class Example extends React.Component {
     });
     
     const body = await response.text();
-    alert (body);
+    if(body == "false")
+    {
+      alert("Wrong login information, please try again")
+    }
+    else{
+      alert ("You are now logged in as: " + body);
+      this.setState({loggedIn: true});
+      this.setState({loggedInUser: this.state.user});
+      this.setState({loggedInPwd: this.state.password});
+      this.setState({loggedInAsCust: this.state.customer});
+      alert (this.state.loggedIn);
+      alert (this.state.loggedInUser);
+      alert (this.state.loggedInPwd);
+      alert (this.state.loggedInAsCust);
+    }
+    
     this.setState({ responseToPost: body });    
   };
 
@@ -101,38 +125,28 @@ export default class Example extends React.Component {
     this.setState({ responseToPost: body });    
   };
 
-  search = async e => {
-        
-    e.preventDefault();
-    const response = await fetch('/db/orderHistory', {
-      method: 'GET',      
-      headers: { 'Content-Type': 'application/json' },      
-
-    });    
-    
-    const body = await response.text();
-    alert (body);
-    this.setState({ responseToPost: body });    
-  };
-
   placeOrder = async e => {
     
-    alert (this.state.user);
-    alert (this.state.password);
-    alert (this.state.customer);
-    
-    var cust = true;
-    e.preventDefault();
-    const response = await fetch('/db/login', {
-      method: 'POST',      
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({"user":{ "user": this.state.user, "password": this.state.password, "customer": this.state.customer }}),
+    if(this.state.loggedIn)
+    {
+      e.preventDefault();
+      const response = await fetch('/db/placeorder', {
+        method: 'POST',      
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, "customer": this.state.loggedInAsCust }, 
+        "materialid": this.state.orderMaterial, "qty": this.state.orderQty}),
 
-    });
+      });
+
+      const body = await response.text();
+      alert (body);
+      this.setState({ responseToPost: body });  
+    }
+    else{
+      alert ("You are not logged in, please log in before placing an order")
+    }
     
-    const body = await response.text();
-    alert (body);
-    this.setState({ responseToPost: body });    
+      
   };
 
   signUp = async e => {
@@ -229,6 +243,29 @@ export default class Example extends React.Component {
           <button type="submit">Search</button>
         </form>
         <br />   
+        <h4> Place An Order </h4>
+        <form onSubmit ={this.placeOrder}>
+          <div className="material">
+            <label>Material: </label>
+            <input 
+              type="text" 
+              value = {this.state.orderMaterial}
+              onChange={this.handleOrderMaterialChange}  
+            />
+          </div>
+          <br />
+          <div className="qty">
+            <label>Quantity: </label>
+            <input 
+              type="text" 
+              value = {this.state.orderQty}
+              onChange={this.handleOrderQuantityChange} 
+            />
+          </div>
+          <br />          
+          <button type="submit">Place Order</button>
+        </form>
+        <br />
       </div>
     );
   }
