@@ -105,6 +105,20 @@ export default class Example extends React.Component {
     this.setState({ responseToPost: body });    
   };
 
+  listProducts = async e => {        
+    e.preventDefault();
+    const response = await fetch('/db/productlist', {
+      method: 'POST',      
+      headers: { 'Content-Type': 'application/json' },   
+      body: JSON.stringify({"filter":{ "category": "", "sub_category": "", 
+      "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}),  
+    });
+    
+    const body = await response.text();
+    alert (body);
+    this.setState({ responseToPost: body });    
+  };
+
   listCategory = async e => {        
     e.preventDefault();
     const response = await fetch('/db/listcategory', {
@@ -246,6 +260,9 @@ export default class Example extends React.Component {
         </form>
         <br />
         <div>
+          <button className="listProducts" onClick={this.listProducts}>
+            Get a List of Product
+          </button><br /> 
           <button className="listCategory" onClick={this.listCategory}>
             Get a List of Category
           </button><br />        
