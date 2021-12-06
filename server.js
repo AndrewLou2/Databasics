@@ -23,7 +23,7 @@ app.use(express.json());
 app.use((req,res,next) => {
     let user = req.body.user;
     let checkedUser = {};
-    if (Object.keys(req.body.user).length == 0) {
+    if (user == null || user == undefined) {
         req.user = checkedUser;
         next();
     } else {
