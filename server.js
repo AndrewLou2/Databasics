@@ -23,26 +23,31 @@ app.use(express.json());
 app.use((req,res,next) => {
     let user = req.body.user;
     let checkedUser = {};
-    const conn = newConnection();
-    let table;
-    user.customer? table = "Customers" : table = "Employees";
-    console.log(table);
-    conn.query(
-        `
-        SELECT * FROM ${table}
-        Where username = "${user.user}" and password = "${user.password}";
-        `
-        , (err, rows, fields) => {
-            if (err) console.log(err);
-            else if (rows.length > 0) {
-                console.log(rows);
-                checkedUser = {user: rows[0].username, password:rows[0].password, customer:user.customer, id:rows[0].ID};
-            }
-            req.user = checkedUser;
-            console.log(req.user);
-            next();
-        });
-    conn.end();
+    if (Object.keys(req.body.user).length == 0) {
+        req.user = checkedUser;
+        next();
+    } else {
+        const conn = newConnection();
+        let table;
+        user.customer? table = "Customers" : table = "Employees";
+        console.log(table);
+        conn.query(
+            `
+            SELECT * FROM ${table}
+            Where username = "${user.user}" and password = "${user.password}";
+            `
+            , (err, rows, fields) => {
+                if (err) console.log(err);
+                else if (rows.length > 0) {
+                    console.log(rows);
+                    checkedUser = {user: rows[0].username, password:rows[0].password, customer:user.customer, id:rows[0].ID};
+                }
+                req.user = checkedUser;
+                console.log(req.user);
+                next();
+            });
+        conn.end();
+    }
 })
 
 app.get('/', (req, res, err) => res.send("hi"));
@@ -410,7 +415,21 @@ app.post('/db/completedemand', (req, res, err) => {
             UPDATE Demand_Orders SET Status="COMPLETE", Completion_Date=curdate() where ID = ${demandID} and Status="STAGED" and (SELECT complete_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
             `, (err, rows, fields) => {
                 if (err) res.send(JSON.stringify(false));
-                else res.send(JSON.stringify(true));
+                else {
+                    conn.query(
+                        `
+                        UPDATE Materials m
+                        INNER JOIN Demand_Orders d on d.Material = m.ID
+                        SET m.Staged=m.Staged-d.Qty,
+                            m.Stock=m.Stock-d.Qty
+                        WHERE d.ID = ${demandID};
+                        `, (err, rows, fields) => {
+                            if (err) res.send(JSON.stringify(false));
+                            else res.send(JSON.stringify(true));
+                        }
+                    );
+                    conn.end();
+                }
             }
         );
         conn.end();
@@ -545,11 +564,12 @@ app.post('/db/stagedemand', (req, res, err) => {
                         `
                         UPDATE Materials m
                         INNER JOIN Demand_Orders d on d.Material = m.ID
-                        SET m.Stock=m.Stock-d.Qty
+                        SET m.Staged=m.Staged+d.Qty,
+                            m.Stock=m.Stock-d.Qty
                         WHERE d.ID = ${demandID};
                         `, (err, rows, fields) => {
                             if (err) res.send(JSON.stringify(false));
-                            res.send(JSON.stringify(true));
+                            else res.send(JSON.stringify(true));
                         }
                     );
                     conn.end();
@@ -706,7 +726,20 @@ app.post('/db/producesupply', (req, res, err) => {
                         WHERE s.ID = ${supplyID};
                         `, (err, rows, fields) => {
                             if (err) res.send(JSON.stringify(false));
-                            res.send(JSON.stringify(true));
+                            else {
+                                conn.query(
+                                    `
+                                    UPDATE Materials m 
+                                    INNER JOIN Supply_Orders s on s.Material = m.ID
+                                    SET m.WIP=m.WIP+s.Qty 
+                                    WHERE s.ID = ${supplyID};
+                                    `, (err, rows, fields) => {
+                                        if (err) res.send(JSON.stringify(false));
+                                        else res.send(JSON.stringify(true));
+                                    }
+                                );
+                                conn.end();
+                            }
                         }
                     );
                     conn.end();
@@ -768,7 +801,8 @@ app.post('/db/completesupply', (req, res, err) => {
                         `
                         UPDATE Materials m 
                         INNER JOIN Supply_Orders s on s.Material = m.ID
-                        SET m.Stock=m.Stock+s.Qty 
+                        SET m.Stock=m.Stock+s.Qty,
+                            m.WIP = if(m.Group_ID <> "RM", m.Wip - s.Qty, m.Wip)
                         WHERE s.ID = ${supplyID};
                         `, (err, rows, fields) => {
                             if (err) res.send(JSON.stringify(false));
