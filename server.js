@@ -71,14 +71,17 @@ app.post('/db/productlist', (req, res, err) => {
     let uom = makeSqlString(filter.uom, true);
     if (filter.uom.length == 0) uom = `UOM`;
     if (!Object.keys(req.user).length == 0) req.user.customer? groupid = "FG" : groupid = groupid;
-    else groupid = "FG"
+    else groupid = `"FG"`;
 
     const conn = newConnection();
     conn.query(
         `
         SELECT ID, Item_Description, Price, Category, Sub_Category, Size, Gauge, RM_Group FROM Materials
         WHERE Category in (${category}) and Sub_Category in (${sub_category}) and Size in (${size}) and Gauge in (${gauge}) and RM_Group in (${rm}) and Group_ID in (${groupid}) and UOM in (${uom});
-        `, (err, rows, fields) => res.send(JSON.stringify(rows))
+        `, (err, rows, fields) => {
+            console.log(err);
+            res.send(JSON.stringify(rows))
+        }
     );
     conn.end();
 })
