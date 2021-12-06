@@ -66,6 +66,12 @@ app.post('/db/productlist', (req, res, err) => {
     if (filter.gauge.length == 0) gauge = `Gauge`;
     let rm = makeSqlString(filter.material, true);
     if (filter.material.length == 0) rm = `RM_Group`;
+    let groupid = makeSqlString(filter.groupID, true);
+    if (filter.groupID.length == 0) groupid = `Group_ID`;
+    let uom = makeSqlString(filter.uom, true);
+    if (filter.uom.length == 0) uom = `UOM`;
+    if (!Object.keys(req.user).length == 0) req.user.customer? groupid = "FG" : groupid = groupid;
+    else groupid = "FG"
 
     const conn = newConnection();
     conn.query(
@@ -226,7 +232,7 @@ app.post('/db/listproductrm', (req, res, err) => {
 app.post('/db/register', (req, res, err) => {
     //console.log(req.body.user);
     if (Object.keys(req.user).length > 0) res.send(JSON.stringify("Username Unavailable"));
-    else if (Object.keys(req.user).length == 0) res.send(JSON.stringify("All fields are mandatory"));
+    else if (Object.keys(req.body.user).length == 0) res.send(JSON.stringify("All fields are mandatory"));
     else {
         let newUser = req.body.user;
         const conn = newConnection();
