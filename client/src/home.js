@@ -246,7 +246,7 @@ export default class Example extends React.Component {
         <h4> Place An Order </h4>
         <form onSubmit ={this.placeOrder}>
           <div className="material">
-            <label>Material: </label>
+            <label>Material ID: </label>
             <input 
               type="text" 
               value = {this.state.orderMaterial}
