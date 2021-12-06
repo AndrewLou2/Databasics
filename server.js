@@ -235,7 +235,7 @@ app.post('/db/register', (req, res, err) => {
             INSERT INTO Customers (Name, username, password, Address, Contact) 
             VALUES ("${newUser.name}", "${newUser.username}", "${newUser.password}", "${newUser.address}", "${newUser.contact}")
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false));
+                if (err) res.send(JSON.stringify(false))
                 else res.send(JSON.stringify({user:newUser.username, password:newUser.password, customer:true, id:rows.insertId}));
             }
         );
@@ -399,8 +399,8 @@ app.post('/db/approvedemand', (req, res, err) => {
             `
             UPDATE Demand_Orders SET Status="OPEN", Approved_By=${id} where ID = ${demandID} and Status="Closed" and (SELECT approve_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false));
-                res.send(JSON.stringify(true));
+                if (err) res.send(JSON.stringify(false))
+                else res.send(JSON.stringify(true));
             }
         );
         conn.end();
@@ -452,8 +452,8 @@ app.post('/db/toptendemand', (req, res, err) => {
             GROUP BY m.ID, m.Item_Description
             LIMIT 10
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify(err))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
@@ -472,8 +472,8 @@ app.post('/db/toptendemandrevenue', (req, res, err) => {
             GROUP BY m.ID, m.Item_Description
             LIMIT 10
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify(err))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
@@ -506,8 +506,8 @@ app.post('/db/totalbyrm', (req, res, err) => {
             WHERE m.Category = "Metal"
             GROUP BY m.ID;
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify(err))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
@@ -668,8 +668,8 @@ app.post('/db/approvesupply', (req, res, err) => {
             `
             UPDATE Supply_Orders SET Status="OPEN", where ID = ${supplyID} and Status="NEW" and (SELECT approve_supply from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false));
-                res.send(JSON.stringify(true));
+                if (err) res.send(JSON.stringify(false))
+                else res.send(JSON.stringify(true));
             }
         );
         conn.end();
@@ -690,8 +690,8 @@ app.post('/db/checkmaterialavailability', (req, res, err) => {
             inner join materials m on b.Child
             where b.Qty*s.Qty > m.Stock and s.ID = ${supplyID}
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify({}));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify({}))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
@@ -770,8 +770,8 @@ app.post('/db/ordersupply', (req, res, err) => {
             and (SELECT order_supply FROM Employees 
             INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights WHERE Employees.ID = ${id})
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false));
-                res.send(JSON.stringify(true));
+                if (err) res.send(JSON.stringify(false))
+                else res.send(JSON.stringify(true));
             }
         );
         conn.end();
@@ -809,8 +809,8 @@ app.post('/db/completesupply', (req, res, err) => {
                             m.WIP = if(m.Group_ID <> "RM", m.Wip - s.Qty, m.Wip)
                         WHERE s.ID = ${supplyID};
                         `, (err, rows, fields) => {
-                            if (err) res.send(JSON.stringify(false));
-                            res.send(JSON.stringify(true));
+                            if (err) res.send(JSON.stringify(false))
+                            else res.send(JSON.stringify(true));
                         }
                     );
                     conn.end();
@@ -938,8 +938,8 @@ app.post('/db/breakdown', (req, res, err) => {
                     inner join receipt r on r.Child = m.ID
                 ) select * from receipt where FG = ${id}) as breakdown;
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify(err))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
@@ -990,8 +990,8 @@ app.post('/db/employeelist', (req, res, err) => {
             `
             SELECT * from Employees
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify(err))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
@@ -1007,8 +1007,8 @@ app.post('/db/vendorlist', (req, res, err) => {
             `
             SELECT * from Vendors
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err));
-                res.send(JSON.stringify(rows));
+                if (err) res.send(JSON.stringify(err))
+                else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
