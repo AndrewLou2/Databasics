@@ -78,6 +78,7 @@ app.post('/db/productlist', (req, res, err) => {
 })
 
 app.post('/db/listcategory', (req, res, err) => {
+    console.log(req.body.filter);
     let filter = req.body.filter;
     let category = `m2.Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
@@ -92,12 +93,12 @@ app.post('/db/listcategory', (req, res, err) => {
     if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
     let uom = makeSqlString(filter.uom, true);
     if (filter.uom.length == 0) uom = `m2.UOM`;
-
+    console.log(sub_category);
     const conn = newConnection();
     conn.query(
         `
         SELECT m.Category, sum(EXISTS(SELECT * FROM Materials m2
-            WHEREm2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
+            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
             Where m.Group_ID = "FG"
             Group by m.Category;
         
