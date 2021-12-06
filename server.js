@@ -20,6 +20,8 @@ const makeSqlString = (arr, isString) => {
 
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, "client/build")));
+
 app.use((req,res,next) => {
     let user = req.body.user;
     let checkedUser = {};
@@ -50,7 +52,7 @@ app.use((req,res,next) => {
     }
 })
 
-app.get('/', (req, res, err) => res.send("hi"));
+app.get('/', (req, res, err) => res.sendFile(path.join(__dirname, "/client/build/index.html")));
 
 app.post('/db/productlist', (req, res, err) => {
     let filter = req.body.filter;
@@ -77,7 +79,7 @@ app.post('/db/productlist', (req, res, err) => {
 
 app.post('/db/listcategory', (req, res, err) => {
     let filter = req.body.filter;
-    let category = category = `m2.Category`;
+    let category = `m2.Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
     if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
     let size = makeSqlString(filter.size, false);
