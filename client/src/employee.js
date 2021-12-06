@@ -43,9 +43,18 @@ export default class Example extends React.Component {
     });
   };
 
-  handleSubmit = (event) => {
-    alert('Employee has been added to the database');
-  };
+  handleSubmit = async e => {
+    e.preventDefault();
+    const response = await fetch('/db/employeelist', {
+      method: 'POST',      
+      headers: { 'Content-Type': 'application/json' },   
+      body: JSON.stringify({"employee":{ 'username': this.state.username, 'salary': this.state.salary, 'birthday': this.state.bday, 'contact': this.state.contact, 'rights': this.state.userRights}}),   
+    });
+
+    const body = await response.text();
+    alert (body);
+    this.setState({responseToPost:body});
+  }
 
   render() {
     return (
