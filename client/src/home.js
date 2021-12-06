@@ -18,17 +18,17 @@ import {
   DropdownMenu,
 } from "reactstrap";
 export default class Example extends React.Component {
-
+  
   constructor(props) {
     super(props);
     this.state = {
-        username: "",
+        user: "",
         password: "",
         customer: false
     }
 }
   handleUserNameChange = event => {
-    this.setState({username: event.target.value});
+    this.setState({user: event.target.value});
   }
 
   handlePasswordChange = event => {
@@ -39,9 +39,10 @@ export default class Example extends React.Component {
     this.setState({customer: value})
   }
   
+  
   login = async e => {
     
-    alert (this.state.username);
+    alert (this.state.user);
     alert (this.state.password);
     alert (this.state.customer);
     
@@ -49,7 +50,7 @@ export default class Example extends React.Component {
     e.preventDefault();
     const response = await fetch('/db/login', {
       method: 'POST',      
-      body: JSON.stringify({ "user": this.state.username, "password": this.state.password, "customer": this.state.customer  }),
+      body: JSON.stringify({ "user": this.state.user, "password": this.state.password, "customer": this.state.customer  }),
       
     });
     
@@ -60,6 +61,7 @@ export default class Example extends React.Component {
   };
   signUp = async e => {
     alert("Go to registration page");    
+    
   };
   
   render() {
@@ -67,11 +69,11 @@ export default class Example extends React.Component {
       <div className="main">
         <h3> Login </h3>
         <form onSubmit ={this.login}>
-          <div className="username">
+          <div className="user">
             <label>Username: </label>
             <input 
               type="text" 
-              value = {this.state.username}
+              value = {this.state.user}
               onChange={this.handleUserNameChange}  
             />
           </div>
@@ -99,7 +101,7 @@ export default class Example extends React.Component {
         <br />
         <button className="register" onClick={this.signUp}>
           Sign Up
-        </button><br /><br />
+        </button><br /><br />        
       </div>
     );
   }

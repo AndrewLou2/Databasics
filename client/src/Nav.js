@@ -5,6 +5,7 @@ import { Route, Routes } from "react-router-dom";
 import Employee from "./employee";
 import Home from "./home";
 import Customer from "./customer";
+import Register from "./register";
 
 export default class Example extends React.Component {
   render() {
@@ -20,11 +21,15 @@ export default class Example extends React.Component {
           <NavItem>
             <NavLink href="/customer/">Customer</NavLink>
           </NavItem>
+          <NavItem>
+            <NavLink href="/register/">Register</NavLink>
+          </NavItem>
         </Nav>
         <Routes>
           <Route path="/home" element={<Home />} />
           <Route path="/employee" element={<Employee />} />
           <Route path="/customer" element={<Customer />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
       </div>
     );
