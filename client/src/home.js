@@ -50,7 +50,7 @@ export default class Example extends React.Component {
     e.preventDefault();
     const response = await fetch('/db/login', {
       method: 'POST',      
-      body: JSON.stringify({ "user": this.state.user, "password": this.state.password, "customer": this.state.customer  }),
+      body: JSON.stringify({"user":{ "user": this.state.user, "password": this.state.password, "customer": this.state.customer }}),
       
     });
     

@@ -39,6 +39,8 @@ const makeSqlString = (arr, isString) => {
     return out;
 }
 
+app.use(express.json());
+
 app.get('/', (req, res, err) => res.send("hi"));
 
 app.get('/db/productlist', (req, res, err) => {
@@ -59,7 +61,7 @@ app.get('/db/productlist', (req, res, err) => {
         `
         SELECT ID, Item_Description, Price, Category, Sub_Category, Size, Gauge, RM_Group FROM Materials
         WHERE Category in (${category}) and Sub_Category in (${sub_category}) and Size in (${size}) and Gauge in (${gauge}) and RM_Group in (${rm});
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
@@ -83,7 +85,7 @@ app.get('/db/listcategory', (req, res, err) => {
             Where m.Group_ID = "FG"
             Group by m.Category;
         
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
@@ -107,7 +109,7 @@ app.get('/db/listsubcategory', (req, res, err) => {
             Where m.Group_ID = "FG"
             Group by m.Sub_Category;
         
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
@@ -131,7 +133,7 @@ app.get('/db/listsize', (req, res, err) => {
             Where m.Group_ID = "FG"
             Group by m.Size;
         
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
@@ -155,7 +157,7 @@ app.get('/db/listgauge', (req, res, err) => {
             Where m.Group_ID = "FG"
             Group by m.Gauge;
         
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
@@ -179,38 +181,33 @@ app.get('/db/listproductrm', (req, res, err) => {
             Where m.Group_ID = "FG"
             Group by m.RM_Group;
         
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
 
-app.use((req, res, err) => {
-    let user = req.body.user;
-    user = {...checkCredentials(user.usr, user.pwd, user.customer)};
-    req.body.user = user;
-    next();
-});
-
-app.post('/db/login', (req, res, err) => {
-    res.send(req.body.user);
-})
-
-app.get('/db/register', (req, res, err) => {
-    let newUser = req.body.newUser;
-    let user = {...checkCredentials(newUser.username, newUser.password, true)}
-    if (user != {}) res.send(false);
+app.post('/db/register', (req, res, err) => {
+    console.log(req.body.user);
+    let newUser = req.body.user;
     const conn = newConnection();
     conn.query(
         `
         INSERT INTO Customers (Name, username, password, Address, Contact) 
-        VALUES ("${newUser.name}", "${newUser.username}", "${newUser.password}", "${newUser.address}", "${newUser.contact}})
+        VALUES ("${newUser.name}", "${newUser.username}", "${newUser.password}", "${newUser.address}", "${newUser.contact}")
         `, (err, rows, fields) => {
-            if (err) res.send({});
-            res.send({usr:newUser.username, pwd:newUser.password, customer:true, id:rows.insertId})
+            if (err) res.send(JSON.stringify(false));
+            else res.send(JSON.stringify({user:newUser.username, password:newUser.password, customer:true, id:rows.insertId}));
         }
     );
     conn.end();
 });
+
+app.post('/db/login', (req, res, err) => {
+    let user = req.body.user;
+    user = {...checkCredentials(user.user, user.password, user.customer)};
+    req.body.user = JSON.stringify(user);
+    res.send(JSON.stringify(req.body.user));
+})
 
 app.get('/db/orderHistory', (req, res, err) => {
     let filter = req.body.filter;
@@ -232,7 +229,7 @@ app.get('/db/orderHistory', (req, res, err) => {
         SELECT d.ID, m.Item_Description, d.Qty, d.Price, d,Status FROM Demand_Orders d
         INNER JOIN Materials m on m.ID = d.Material
         WHERE d.Customer = ${id} and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm})))
-        `, (err, rows, fields) => res.send(rows)
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
     conn.end();
 })
@@ -249,8 +246,8 @@ app.get('/db/placeorder', (req, res, err) => {
             Select (ID, ${qty}, ${qty}*Price, ${id}, curdate())
             from Materials where ID = ${material};
             `, (err, rows, fields) => {
-                if (err) res.send(false);
-                res.send(true);
+                if (err) res.send(JSON.stringify(false));
+                res.send(JSON.stringify(true));
             }
         );
     else 
@@ -260,10 +257,64 @@ app.get('/db/placeorder', (req, res, err) => {
             Select (ID, ${qty}, ${qty}*Price, ${id}, curdate())
             from Materials where ID = ${material};
             `, (err, rows, fields) => {
-                if (err) res.send(false);
-                res.send(true);
+                if (err) res.send(JSON.stringify(false));
+                res.send(JSON.stringify(true));
             }
         );
+    conn.end();
+})
+
+app.get('/db/demandlist', (req, res, err) => {
+    let filter = req.body.filter;
+    let demandfilter = req.body.demandfilter;
+    let category = makeSqlString(filter.category, true);
+    if (filter.category.length == 0) category = `Category`;
+    let sub_category = makeSqlString(filter.sub_category, true);
+    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
+    let size = makeSqlString(filter.size, false);
+    if (filter.size.length == 0) size = `Size`;
+    let gauge = makeSqlString(filter.category, false);
+    if (filter.gauge.length == 0) gauge = `Gauge`;
+    let rm = makeSqlString(filter.material, true);
+    if (filter.material.length == 0) rm = `RM_Group`;
+    let status = makeSqlString(demandfilter.status, true)
+    if (demandfilter.status.length == 0) status = `Status`
+
+    let id = req.body.user.ID;
+    const conn = newConnection();
+    conn.query(
+        `
+        SELECT d.ID, m.Item_Description, d.Qty, d.Price, d,Status FROM Demand_Orders d
+        INNER JOIN Materials m on m.ID = d.Material
+        WHERE d.Customer = ${id} and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm}) and d.Status in (${status})))
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
+    );
+    conn.end();
+})
+
+app.get('/db/listdemandstatus', (req, res, err) => {
+    let filter = req.body.filter;
+    let category = makeSqlString(filter.category, true);
+    if (filter.category.length == 0) category = `Category`;
+    let sub_category = makeSqlString(filter.sub_category, true);
+    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
+    let size = makeSqlString(filter.size, false);
+    if (filter.size.length == 0) size = `Size`;
+    let gauge = makeSqlString(filter.category, false);
+    if (filter.gauge.length == 0) gauge = `Gauge`;
+    let rm = makeSqlString(filter.material, true);
+    if (filter.material.length == 0) rm = `RM_Group`;
+
+    let id = req.body.user.ID;
+    const conn = newConnection();
+    conn.query(
+        `
+        SELECT d.Status, sum(EXISTS(SELECT * FROM Materials m2
+            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge = m.Gauge and m2.RM_Group in (${rm}))) as Available FROM demand_orders d
+            Where m.Group_ID = "FG"
+            Group by m.Gauge;
+        `, (err, rows, fields) => res.send(JSON.stringify(rows))
+    );
     conn.end();
 })
 

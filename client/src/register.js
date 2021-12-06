@@ -61,9 +61,9 @@ export default class Example extends React.Component {
     const response = await fetch('/db/register', {
       method: 'POST',      
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ "name": this.state.name, 
+      body: JSON.stringify({"user":{ "name": this.state.name, 
       "username": this.state.username, "password": this.state.password, 
-      "address": this.state.address, "contact": this.state.contact  }),      
+      "address": this.state.address, "contact": this.state.contact  }}),      
     });
     
     const body = await response.text();
