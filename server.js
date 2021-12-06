@@ -279,9 +279,9 @@ app.post('/db/orderHistory', (req, res, err) => {
 })
 
 app.post('/db/placeorder', (req, res, err) => {
-    if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
+    if (Object.keys(req.user).length == 0) {res.send(JSON.stringify("Access Denied"))}
     else {
-        let id = req.user.ID;
+        let id = req.user.id;
         let material = req.body.materialid;
         let qty = req.body.qty;
         const conn = newConnection();
@@ -289,13 +289,13 @@ app.post('/db/placeorder', (req, res, err) => {
             conn.query(
                 `
                 INSERT INTO Demand_Orders (Material, Qty, Price, Customer, Order_Date)
-                Select (ID, ${qty}, ${qty}*Price, ${id}, curdate())
+                Select ID, ${qty}, ${qty}*Price, ${id}, curdate()
                 from Materials where ID = ${material};
                 `, (err, rows, fields) => {
-                    if (err) res.send(JSON.stringify(false));
-                    res.send(JSON.stringify(true));
+                    if (err) res.send(JSON.stringify(false))
+                    else res.send(JSON.stringify(true));
                 }
-            );
+            )
         else 
             conn.query(
                 `
@@ -303,8 +303,8 @@ app.post('/db/placeorder', (req, res, err) => {
                 Select (ID, ${qty}, ${qty}*Price, ${id}, curdate())
                 from Materials where ID = ${material};
                 `, (err, rows, fields) => {
-                    if (err) res.send(JSON.stringify(false));
-                    res.send(JSON.stringify(true));
+                    if (err) res.send(JSON.stringify(false))
+                    else res.send(JSON.stringify(true));
                 }
             );
         conn.end();
