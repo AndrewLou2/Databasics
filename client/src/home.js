@@ -100,10 +100,6 @@ export default class Example extends React.Component {
       this.setState({loggedInUser: this.state.user});
       this.setState({loggedInPwd: this.state.password});
       this.setState({loggedInAsCust: this.state.customer});
-      alert (this.state.loggedIn);
-      alert (this.state.loggedInUser);
-      alert (this.state.loggedInPwd);
-      alert (this.state.loggedInAsCust);
     }
     
     this.setState({ responseToPost: body });    
@@ -246,7 +242,7 @@ export default class Example extends React.Component {
         <h4> Place An Order </h4>
         <form onSubmit ={this.placeOrder}>
           <div className="material">
-            <label>Material: </label>
+            <label>Material ID: </label>
             <input 
               type="text" 
               value = {this.state.orderMaterial}
