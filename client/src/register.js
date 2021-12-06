@@ -63,7 +63,7 @@ export default class Example extends React.Component {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({"user":{ "name": this.state.name, 
       "username": this.state.username, "password": this.state.password, 
-      "address": this.state.address, "contact": this.state.contact  }}),      
+      "address": this.state.address, "contact": this.state.contact, "customer":true }}),      
     });
     
     const body = await response.text();

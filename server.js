@@ -21,7 +21,6 @@ const makeSqlString = (arr, isString) => {
 app.use(express.json());
 
 app.use((req,res,next) => {
-    console.log(req.body.user);
     let user = req.body.user;
     let checkedUser = {};
     const conn = newConnection();
@@ -40,6 +39,7 @@ app.use((req,res,next) => {
                 checkedUser = {user: rows[0].username, password:rows[0].password, customer:user.customer, id:rows[0].ID};
             }
             req.user = checkedUser;
+            console.log(req.user);
             next();
         });
     conn.end();
@@ -216,30 +216,33 @@ app.get('/db/listproductrm', (req, res, err) => {
 })
 
 app.post('/db/register', (req, res, err) => {
-    console.log(req.body.user);
-    let newUser = req.body.user;
-    const conn = newConnection();
-    conn.query(
-        `
-        INSERT INTO Customers (Name, username, password, Address, Contact) 
-        VALUES ("${newUser.name}", "${newUser.username}", "${newUser.password}", "${newUser.address}", "${newUser.contact}")
-        `, (err, rows, fields) => {
-            if (err) res.send(JSON.stringify(false));
-            else res.send(JSON.stringify({user:newUser.username, password:newUser.password, customer:true, id:rows.insertId}));
+    //console.log(req.body.user);
+    if (Object.keys(req.user).length > 0) res.send(JSON.stringify("Username Unavailable"));
+    else {
+        let newUser = req.body.user;
+        const conn = newConnection();
+        conn.query(
+            `
+            INSERT INTO Customers (Name, username, password, Address, Contact) 
+            VALUES ("${newUser.name}", "${newUser.username}", "${newUser.password}", "${newUser.address}", "${newUser.contact}")
+            `, (err, rows, fields) => {
+                if (err) res.send(JSON.stringify(false));
+                else res.send(JSON.stringify({user:newUser.username, password:newUser.password, customer:true, id:rows.insertId}));
         }
     );
-    conn.end();
+conn.end();
+    }
 });
 
 app.post('/db/login', (req, res, err) => {
     console.log(req.user)
-    let user =  req.user;
+    let user = req.user;
     if (user != {}) res.send(user);
     else res.send(false);
 })
 
 app.get('/db/orderHistory', (req, res, err) => {
-    if (req.user == {}) res.send(JSON.stringify("Access Denied"));
+    if (Object.keys(req.user).length > 0) res.send(JSON.stringify("Access Denied"));
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `Category`;
