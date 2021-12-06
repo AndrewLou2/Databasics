@@ -6,26 +6,6 @@ const { nextTick } = require("process");
 const app = express();
 const port = 80;
 
-const checkCredentials = (username, password, customer) => {
-    const conn = newConnection();
-    let table;
-    let user = {};
-    customer? table = "Customers" : table = "Employees";
-    conn.query(
-        `
-        SELECT * FROM ${table}
-        Where username = "${username}" and password = "${password}";
-        `
-        , (err, rows, fields) => {
-            if (err) console.log(err);
-            if (rows.length > 0)
-                user = {user: rows[0].username, password:rows[0].password, customer:customer, id:rows[0].ID};
-                return user;
-        });
-
-    conn.end();
-}
-
 const makeSqlString = (arr, isString) => {
     let out = ``;
     if (arr.length == 0) return out;
