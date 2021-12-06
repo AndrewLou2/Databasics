@@ -52,7 +52,7 @@ app.use((req,res,next) => {
 
 app.get('/', (req, res, err) => res.send("hi"));
 
-app.get('/db/productlist', (req, res, err) => {
+app.post('/db/productlist', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `Category`;
@@ -75,7 +75,7 @@ app.get('/db/productlist', (req, res, err) => {
     conn.end();
 })
 
-app.get('/db/listcategory', (req, res, err) => {
+app.post('/db/listcategory', (req, res, err) => {
     let filter = req.body.filter;
     let category = category = `m2.Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
@@ -104,7 +104,7 @@ app.get('/db/listcategory', (req, res, err) => {
     conn.end();
 })
 
-app.get('/db/listsubcategory', (req, res, err) => {
+app.post('/db/listsubcategory', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `m2.Category`;
@@ -133,7 +133,7 @@ app.get('/db/listsubcategory', (req, res, err) => {
     conn.end();
 })
 
-app.get('/db/listsize', (req, res, err) => {
+app.post('/db/listsize', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `m2.Category`;
@@ -162,7 +162,7 @@ app.get('/db/listsize', (req, res, err) => {
     conn.end();
 })
 
-app.get('/db/listgauge', (req, res, err) => {
+app.post('/db/listgauge', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `m2.Category`;
@@ -191,7 +191,7 @@ app.get('/db/listgauge', (req, res, err) => {
     conn.end();
 })
 
-app.get('/db/listproductrm', (req, res, err) => {
+app.post('/db/listproductrm', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
     if (filter.category.length == 0) category = `m2.Category`;
@@ -246,7 +246,7 @@ app.post('/db/login', (req, res, err) => {
     else res.send(false);
 })
 
-app.get('/db/orderHistory', (req, res, err) => {
+app.post('/db/orderHistory', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else {
         let filter = req.body.filter;
@@ -274,7 +274,7 @@ app.get('/db/orderHistory', (req, res, err) => {
     }
 })
 
-app.get('/db/placeorder', (req, res, err) => {
+app.post('/db/placeorder', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else {
         let id = req.user.ID;
@@ -307,7 +307,7 @@ app.get('/db/placeorder', (req, res, err) => {
     }
 })
 
-app.get('/db/demandlist', (req, res, err) => {
+app.post('/db/demandlist', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -346,7 +346,7 @@ app.get('/db/demandlist', (req, res, err) => {
     }
 })
 
-app.get('/db/listdemandstatus', (req, res, err) => {
+app.post('/db/listdemandstatus', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -510,7 +510,7 @@ app.post('/db/totalbyrm', (req, res, err) => {
     }
 })
 
-app.get('/db/inventorydemand', (req, res, err) => {
+app.post('/db/inventorydemand', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -579,7 +579,7 @@ app.post('/db/stagedemand', (req, res, err) => {
     }
 })
 
-app.get('/db/supplylist', (req, res, err) => {
+app.post('/db/supplylist', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -616,7 +616,7 @@ app.get('/db/supplylist', (req, res, err) => {
     }
 })
 
-app.get('/db/listsupplystatus', (req, res, err) => {
+app.post('/db/listsupplystatus', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -817,7 +817,7 @@ app.post('/db/completesupply', (req, res, err) => {
     }
 })
 
-app.get('/db/materials', (req, res, err) => {
+app.post('/db/materials', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -848,7 +848,7 @@ app.get('/db/materials', (req, res, err) => {
     }
 })
 
-app.get('/db/listgroupids', (req, res, err) => {
+app.post('/db/listgroupids', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
@@ -880,7 +880,7 @@ app.get('/db/listgroupids', (req, res, err) => {
     }
 })
 
-    app.get('/db/listuom', (req, res, err) => {
+    app.post('/db/listuom', (req, res, err) => {
         if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
         if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
         let filter = req.body.filter;
@@ -942,7 +942,7 @@ app.post('/db/breakdown', (req, res, err) => {
     }
 })
 
-app.get('/db/orderedsupply', (req, res, err) => {
+app.post('/db/orderedsupply', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
