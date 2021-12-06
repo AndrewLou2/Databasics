@@ -105,21 +105,76 @@ export default class Example extends React.Component {
     this.setState({ responseToPost: body });    
   };
 
-  listCategory = async e => {
-        
+  listCategory = async e => {        
     e.preventDefault();
     const response = await fetch('/db/listcategory', {
       method: 'POST',      
       headers: { 'Content-Type': 'application/json' },   
-      body: JSON.stringify({"filter":{ "category": this.state.category, 
-      "sub_category": "", "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}),   
-
+      body: JSON.stringify({"filter":{ "category": "", "sub_category": "", 
+      "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}),  
     });
     
     const body = await response.text();
     alert (body);
     this.setState({ responseToPost: body });    
   };
+
+  listSubCategory = async e => {        
+    e.preventDefault();
+    const response = await fetch('/db/listsubcategory', {
+      method: 'POST',      
+      headers: { 'Content-Type': 'application/json' },   
+      body: JSON.stringify({"filter":{ "category": "", "sub_category": "", 
+      "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}),   
+    });
+    
+    const body = await response.text();
+    alert (body);
+    this.setState({ responseToPost: body });    
+  };
+
+  listSize = async e => {        
+    e.preventDefault();
+    const response = await fetch('/db/listsize', {
+      method: 'POST',      
+      headers: { 'Content-Type': 'application/json' },   
+      body: JSON.stringify({"filter":{ "category": "", "sub_category": "", 
+      "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}), 
+    });
+    
+    const body = await response.text();
+    alert (body);
+    this.setState({ responseToPost: body });    
+  };
+
+  listGauge = async e => {        
+    e.preventDefault();
+    const response = await fetch('/db/listgauge', {
+      method: 'POST',      
+      headers: { 'Content-Type': 'application/json' },   
+      body: JSON.stringify({"filter":{ "category": "", "sub_category": "", 
+      "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}), 
+    });
+    
+    const body = await response.text();
+    alert (body);
+    this.setState({ responseToPost: body });    
+  };
+
+  listRM = async e => {        
+    e.preventDefault();
+    const response = await fetch('/db/listproductrm', {
+      method: 'POST',      
+      headers: { 'Content-Type': 'application/json' },   
+      body: JSON.stringify({"filter":{ "category": "", "sub_category": "", 
+      "size": "", "gauge": "", "material": "", "uom": "", "groupID": ""}}), 
+    });
+    
+    const body = await response.text();
+    alert (body);
+    this.setState({ responseToPost: body });    
+  };
+
 
   placeOrder = async e => {
     
@@ -135,7 +190,12 @@ export default class Example extends React.Component {
       });
 
       const body = await response.text();
-      alert (body);
+      if(body == "false") {
+        alert("There was an error processing your order, please try again")
+      }
+      else if (body == "true") {
+        alert ("Thank you, your order has been placed.");
+      }
       this.setState({ responseToPost: body });  
     }
     else{
@@ -185,60 +245,23 @@ export default class Example extends React.Component {
           <button type="submit">Login</button>
         </form>
         <br />
-        <button className="register" onClick={this.listCategory}>
-          Sign Up
-        </button><br /><br />     
-
-        <h4> Order History by Filter </h4>
-        <form onSubmit ={this.listCategory}>
-          <div className="category">
-            <label>Category: </label>
-            <input 
-              type="text" 
-              value = {this.state.category}
-              onChange={this.handleCategoryChange}  
-            />
-          </div>
-          <br />
-          <div className="subCategory">
-            <label>Sub_Category: </label>
-            <input 
-              type="text" 
-              value = {this.state.subCategory}
-              onChange={this.handleSubCategoryChange} 
-            />
-          </div>
-          <br />
-          <div className="size">
-            <label>Size: </label>
-            <input 
-              type="text" 
-              value = {this.state.size}
-              onChange={this.handleSizeChange}
-            />
-          </div>
-          <br />
-          <div className="gauge">
-            <label>Gauge: </label>
-            <input 
-              type="text" 
-              value = {this.state.gauge}
-              onChange={this.handleGaugeChange}
-            />
-          </div>
-          <br />
-          <div className="rmGroup">
-            <label>RM_Group: </label>
-            <input 
-              type="text" 
-              value = {this.state.rmGroup}
-              onChange={this.handleRMGroupChange}
-            />
-          </div>
-          <br />
-          <button type="submit">Search</button>
-        </form>
-        <br />   
+        <div>
+          <button className="listCategory" onClick={this.listCategory}>
+            Get a List of Category
+          </button><br />        
+          <button className="listSubCategory" onClick={this.listSubCategory}>
+            Get a List of Subcategory
+          </button><br />     
+          <button className="listSize" onClick={this.listSize}>
+            Get a List of Size
+          </button><br />  
+          <button className="listGauge" onClick={this.listGauge}>
+            Get a List of Gauge
+          </button><br />
+          <button className="listRM" onClick={this.listRM}>
+            Get a List of Rare Metal
+          </button><br />
+        </div>   
         <h4> Place An Order </h4>
         <form onSubmit ={this.placeOrder}>
           <div className="material">
