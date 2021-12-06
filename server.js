@@ -262,23 +262,24 @@ app.post('/db/login', (req, res, err) => {
 app.post('/db/orderHistory', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else {
+        console.log(req.body.filter);
         let filter = req.body.filter;
         let category = makeSqlString(filter.category, true);
-        if (filter.category.length == 0) category = `Category`;
+        if (filter.category.length == 0) category = `m.Category`;
         let sub_category = makeSqlString(filter.sub_category, true);
-        if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
+        if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
-        if (filter.size.length == 0) size = `Size`;
-        let gauge = makeSqlString(filter.category, false);
-        if (filter.gauge.length == 0) gauge = `Gauge`;
+        if (filter.size.length == 0) size = `m.Size`;
+        let gauge = makeSqlString(filter.gauge, false);
+        if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
-        if (filter.material.length == 0) rm = `RM_Group`;
+        if (filter.material.length == 0) rm = `m.RM_Group`;
 
-        let id = req.user.ID;
+        let id = req.user.id;
         const conn = newConnection();
         conn.query(
             `
-            SELECT d.ID, m.Item_Description, d.Qty, d.Price, d,Status FROM Demand_Orders d
+            SELECT d.ID, m.Item_Description, d.Qty, d.Price, d.Status FROM Demand_Orders d
             INNER JOIN Materials m on m.ID = d.Material
             WHERE d.Customer = ${id} and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm})
             `, (err, rows, fields) => res.send(JSON.stringify(rows))

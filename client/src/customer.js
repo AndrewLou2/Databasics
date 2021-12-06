@@ -229,12 +229,12 @@ export default class Example extends React.Component {
   orderHistory = async e => {
     if (this.state.loggedIn) {
       e.preventDefault();
-      const response = await fetch('/db/orderHistory', {
+      const response = await fetch('/db/orderhistory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           "user": { "user": this.state.loggedInUser, "password": this.state.loggedInPwd, "customer": this.state.loggedInAsCust }, "filter": {
-            "category": "", "sub_category": "", "size": "", "gauge": "", "rmGroup": ""
+            "category": "", "sub_category": "", "size": "", "gauge": "", "material": ""
           }
         }),
       });
