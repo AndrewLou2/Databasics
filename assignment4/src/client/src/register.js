@@ -12,7 +12,6 @@ export default class Example extends React.Component {
     }
 }
 
-
   handleNameChange = event => {
     this.setState({name: event.target.value});
   }
@@ -51,10 +50,6 @@ export default class Example extends React.Component {
     const body = await response.text();
     alert(body);
     this.setState({ responseToPost: body });
-    
-  };
-  signUp = async e => {
-    alert("Go to registration page");    
     
   };
   

@@ -26,6 +26,7 @@ export default class Example extends React.Component {
       password: event.target.value,
     });
   };
+
   login = async e => {
        
     e.preventDefault();
@@ -33,7 +34,6 @@ export default class Example extends React.Component {
       method: 'POST',      
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({"user":{ "user": this.state.user, "password": this.state.password, "customer": this.state.customer }}),
-
     });
     
     const body = await response.text();
@@ -47,8 +47,7 @@ export default class Example extends React.Component {
       this.setState({loggedInUser: this.state.user});
       this.setState({loggedInPwd: this.state.password});
       this.setState({loggedInAsCust: this.state.customer});
-    }
-    
+    }    
     this.setState({ responseToPost: body });    
   };
 
@@ -62,7 +61,6 @@ export default class Example extends React.Component {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
         "customer": this.state.loggedInAsCust }}),
-
       });
 
       const body = await response.text();
@@ -84,7 +82,6 @@ export default class Example extends React.Component {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
         "customer": this.state.loggedInAsCust }}),
-
       });
 
       const body = await response.text();
@@ -106,7 +103,6 @@ export default class Example extends React.Component {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
         "customer": this.state.loggedInAsCust }}),
-
       });
 
       const body = await response.text();

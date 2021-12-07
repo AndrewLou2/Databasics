@@ -67,8 +67,8 @@ export default class Example extends React.Component {
     const response = await fetch('/db/login', {
       method: 'POST',      
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({"user":{ "user": this.state.user, "password": this.state.password, "customer": this.state.customer }}),
-
+      body: JSON.stringify({"user":{ "user": this.state.user, 
+      "password": this.state.password, "customer": this.state.customer }}),
     });
     
     const body = await response.text();
@@ -180,9 +180,9 @@ export default class Example extends React.Component {
       const response = await fetch('/db/placeorder', {
         method: 'POST',      
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, "customer": this.state.loggedInAsCust }, 
-        "materialid": this.state.orderMaterial, "qty": this.state.orderQty}),
-
+        body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
+        "customer": this.state.loggedInAsCust }, "materialid": this.state.orderMaterial, 
+        "qty": this.state.orderQty}),
       });
 
       const body = await response.text();
@@ -198,11 +198,6 @@ export default class Example extends React.Component {
       alert ("You are not logged in, please log in before placing an order")
     }    
       
-  };
-
-  signUp = async e => {
-    alert("Go to registration page");    
-    
   };
   
   render() {
