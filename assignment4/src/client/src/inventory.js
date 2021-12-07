@@ -162,10 +162,7 @@ export default class Example extends React.Component {
           <br />
           <button type="submit">Login</button>          
         </form>
-        <br />
-        <button className="employeeList" onClick={this.handleSubmit}>
-            Employee List
-        </button><br /><br />
+        <br /><br />
         <button className="topTenDemand" onClick={this.topTenDemand}>
             Top Ten Demand
         </button><br /><br />
