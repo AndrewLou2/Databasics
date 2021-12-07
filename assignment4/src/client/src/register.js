@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React from "react";
 export default class Example extends React.Component {
   
   constructor(props) {

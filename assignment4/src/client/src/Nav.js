@@ -1,5 +1,5 @@
 import React from "react";
-import { Nav, NavItem, NavLink, Media } from "reactstrap";
+import { Nav, NavItem, NavLink } from "reactstrap";
 import { Route, Routes } from "react-router-dom";
 
 import Employee from "./employee";
