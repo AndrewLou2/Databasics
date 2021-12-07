@@ -1,22 +1,4 @@
 import React, { Component, useState } from "react";
-import {
-  Col,
-  Row,
-  Button,
-  Form,
-  FormGroup,
-  Label,
-  Input,
-  FormText,
-  ListGroup,
-  Table,
-  ListGroupItem,
-  ButtonGroup,
-  Badge,
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-} from "reactstrap";
 export default class Example extends React.Component {
   
   constructor(props) {
