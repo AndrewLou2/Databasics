@@ -69,6 +69,26 @@ export default class Example extends React.Component {
     this.setState({ responseToPost: body });
   };
 
+  
+  employeeList = async (e) => {
+    e.preventDefault();
+    const response = await fetch("/db/employeelist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        "user": {
+          "user": "admin",
+          "password": "root",
+          "customer": false,
+        },
+      }),
+    });
+
+    const body = await response.text();
+    alert(body);
+    this.setState({ responseToPost: body });
+  };
+
   render() {
     return (
       <div className="main">
@@ -134,6 +154,13 @@ export default class Example extends React.Component {
           <br></br>
           <button type="submit">Submit</button>
         </form>
+        <div>
+        <br/>
+        <h3>View all employees</h3>
+          <button onClick={this.employeeList}>
+              view
+          </button>
+        </div>
       </div>
     );
   }
