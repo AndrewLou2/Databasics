@@ -499,9 +499,9 @@ app.post('/db/totalbyrm', (req, res, err) => {
             `
             SELECT m.ID, m.Item_Description, SUM(a.Qty) Total, a.UOM from Materials m1 
             INNER JOIN (
-            WITH RECURSIVE receipt(n, FG, FG_txt, Parent, Parent_txt, Child, Child_txt, Qty, UOM, Scrap, Price,Group) as 
+            WITH RECURSIVE receipt(n, FG, FG_txt, Parent, Parent_txt, Child, Child_txt, Qty, UOM, Scrap, Price, GroupID) as 
             (
-                SELECT 0 n, m.ID FG, m.Item_Description FG_txt, m.ID Parent, m.Item_Description Parent_txt, null Child, null Child_txt, 1 QTY, m.UOM, 0.00 Scrap, m.Price, m.Group_ID Group FROM Materials m
+                SELECT 0, m.ID, m.Item_Description, m.ID, m.Item_Description, null, null, 1, m.UOM, 0.00, m.Price, m.Group_ID FROM Materials m
                 UNION ALL
                 SELECT 1, m.ID, m.Item_Description, m.ID, m.Item_Description, m2.ID, m2.Item_Description, b.Qty, m2.UOM, b.Scrap, m2.Price, m2.Group_ID From Bill_Of_Materials b
                 INNER JOIN Materials m on b.Finished_Good = m.ID
@@ -514,10 +514,12 @@ app.post('/db/totalbyrm', (req, res, err) => {
             ) SELECT * FROM receipt) as a on a.FG = m1.ID
             INNER JOIN Materials m on a.Child = m.ID
             WHERE m.Category = "Metal"
-            GROUP BY m.ID;
+            GROUP BY m.ID, m.Item_Description, a.UOM;
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(err))
-                else res.send(JSON.stringify(rows));
+                if (err) {
+                    console.log(err);
+                    res.send(JSON.stringify(err));
+                } else res.send(JSON.stringify(rows));
             }
         );
         conn.end();
