@@ -71,8 +71,51 @@ export default class Example extends React.Component {
     }
     else{
       alert ("You are not logged in, please log in first")
-    }    
-      
+    }          
+  };
+
+  topTenDemandRevenue = async e => {
+    
+    if(this.state.loggedIn)
+    {
+      e.preventDefault();
+      const response = await fetch('/db/toptendemand', {
+        method: 'POST',      
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
+        "customer": this.state.loggedInAsCust }}),
+
+      });
+
+      const body = await response.text();
+      alert (body);
+      this.setState({ responseToPost: body });  
+    }
+    else{
+      alert ("You are not logged in, please log in first")
+    }          
+  };
+  
+  totalByRM = async e => {
+    
+    if(this.state.loggedIn)
+    {
+      e.preventDefault();
+      const response = await fetch('/db/totalbyrm', {
+        method: 'POST',      
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
+        "customer": this.state.loggedInAsCust }}),
+
+      });
+
+      const body = await response.text();
+      alert (body);
+      this.setState({ responseToPost: body });  
+    }
+    else{
+      alert ("You are not logged in, please log in first")
+    }          
   };
 
   handleSubmit = async (e) => {
@@ -82,9 +125,9 @@ export default class Example extends React.Component {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         "user": {
-          "user": this.state.username,
-          "password": this.state.salary,
-          "customer": false,
+          "user": this.state.loggedInUser,
+          "password": this.state.loggedInPwd,
+          "customer": this.state.loggedInAsCust,
         },
       }),
     });
@@ -120,9 +163,18 @@ export default class Example extends React.Component {
           <button type="submit">Login</button>          
         </form>
         <br />
+        <button className="employeeList" onClick={this.handleSubmit}>
+            Employee List
+        </button><br /><br />
         <button className="topTenDemand" onClick={this.topTenDemand}>
             Top Ten Demand
-        </button><br />
+        </button><br /><br />
+        <button className="topTenDemandRevenue" onClick={this.topTenDemandRevenue}>
+            Top Ten Demand by Revenue
+        </button><br /><br />
+        <button className="totalByRM" onClick={this.totalByRM}>
+            Total By RM
+        </button>
       </div>
     );
   }
