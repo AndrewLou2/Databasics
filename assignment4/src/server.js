@@ -498,7 +498,7 @@ app.post('/db/totalbyrm', (req, res, err) => {
         conn.query(
             `
             SELECT m.ID, m.Item_Description, SUM(a.Qty) Total, a.UOM from Materials m1 
-            INNER JOIIN (
+            INNER JOIN (
             WITH RECURSIVE receipt(n, FG, FG_txt, Parent, Parent_txt, Child, Child_txt, Qty, UOM, Scrap, Price,Group) as 
             (
                 SELECT 0 n, m.ID FG, m.Item_Description FG_txt, m.ID Parent, m.Item_Description Parent_txt, null Child, null Child_txt, 1 QTY, m.UOM, 0.00 Scrap, m.Price, m.Group_ID Group FROM Materials m
