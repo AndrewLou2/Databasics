@@ -6,6 +6,7 @@ import Employee from "./employee";
 import Home from "./home";
 import Customer from "./customer";
 import Register from "./register";
+import Inventory from "./inventory";
 import Quit from "./quit";
 
 export default class Example extends React.Component {
@@ -26,6 +27,9 @@ export default class Example extends React.Component {
             <NavLink href="/register/">Register</NavLink>
           </NavItem>
           <NavItem>
+            <NavLink href="/inventory/">Inventory</NavLink>
+          </NavItem>
+          <NavItem>
             <NavLink href="/quit/">Quit</NavLink>
           </NavItem>
         </Nav>
@@ -34,6 +38,7 @@ export default class Example extends React.Component {
           <Route path="/employee" element={<Employee />} />
           <Route path="/customer" element={<Customer />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/inventory" element={<Inventory />} />
           <Route path="/quit" element={<Quit />} />
         </Routes>
       </div>

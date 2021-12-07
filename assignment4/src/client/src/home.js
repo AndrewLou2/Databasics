@@ -196,8 +196,7 @@ export default class Example extends React.Component {
     }
     else{
       alert ("You are not logged in, please log in before placing an order")
-    }
-    
+    }    
       
   };
 
