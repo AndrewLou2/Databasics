@@ -6,6 +6,7 @@ export default class Example extends React.Component {
 
     this.state = {
       username: "",
+      password: "",
       salary: 0,
       bday: "",
       contact: "",
@@ -43,18 +44,30 @@ export default class Example extends React.Component {
     });
   };
 
-  handleSubmit = async e => {
+  handlePasswordChange = (event) => {
+    this.setState({
+      password: event.target.value,
+    });
+  };
+
+  handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch('/db/employeelist', {
-      method: 'POST',      
-      headers: { 'Content-Type': 'application/json' },   
-      body: JSON.stringify({"employee":{ 'username': this.state.username, 'salary': this.state.salary, 'birthday': this.state.bday, 'contact': this.state.contact, 'rights': this.state.userRights}}),   
+    const response = await fetch("/db/employeelist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        "user": {
+          "user": this.state.username,
+          "password": this.state.salary,
+          "customer": false,
+        },
+      }),
     });
 
     const body = await response.text();
-    alert (body);
-    this.setState({responseToPost:body});
-  }
+    alert(body);
+    this.setState({ responseToPost: body });
+  };
 
   render() {
     return (
@@ -68,6 +81,15 @@ export default class Example extends React.Component {
               value={this.state.username}
               onChange={this.handleUsernameChange}
               placeholder="Enter employee name"
+            />
+          </div>
+          <br></br>
+          <div className="name">
+            <label>password: </label>
+            <input
+              type="password"
+              value={this.state.password}
+              onChange={this.handlePasswordChange}
             />
           </div>
           <br></br>
