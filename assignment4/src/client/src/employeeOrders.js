@@ -417,7 +417,7 @@ export const EmployeeOrders = () => {
     const mapBreakDown = () => {
         return (
             receipt.map(r =>
-                <div style={{border:"5px solid black", zIndex:"50"}}>
+                <div>
                     {
                         r.n + " | "
                         + r.FG + " | "
@@ -486,14 +486,14 @@ export const EmployeeOrders = () => {
             } 
             <br/>
             {receipt.length > 0 &&
-                <>BREAKDOWN 
+                <div style={{border:"5px solid black"}}>BREAKDOWN 
                 <button onClick={() => setReceipt([])}>CLEAR</button>
                 {
                     mapBreakDown()
                 }
 
                 <br/>
-                </>
+                </div>
             }
             MATERIALS: <br/>
             {
