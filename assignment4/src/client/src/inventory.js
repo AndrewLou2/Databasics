@@ -77,7 +77,7 @@ export default class Example extends React.Component {
     if(this.state.loggedIn)
     {
       e.preventDefault();
-      const response = await fetch('/db/toptendemand', {
+      const response = await fetch('/db/toptendemandrevenue', {
         method: 'POST',      
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({"user":{ "user": this.state.loggedInUser, "password": this.state.loggedInPwd, 
