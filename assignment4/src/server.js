@@ -351,7 +351,6 @@ app.post('/db/createsupply', (req, res, err) => {
                 INSERT INTO Supply_Orders (Material, Qty, Ordered_By, Order_Date)
                 VALUES (${material}, ${qty}, ${id}, curdate())
                 `, (err, rows, fields) => {
-                    console.log(rows.affectedRows);
                     if (err) {console.log(err);res.send(JSON.stringify(false))}
                     else res.send(JSON.stringify(true));
                 }
@@ -880,8 +879,7 @@ app.post('/db/completesupply', (req, res, err) => {
             and (SELECT complete_supply FROM Employees 
             INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights WHERE Employees.ID = ${id});
             `, (err, rows, fields) => {
-                console.log(err);
-                if (err) res.send(JSON.stringify(false));
+                if (err) {console.log(err);res.send(JSON.stringify(false));}
                 else {
                     conn.query(
                         `

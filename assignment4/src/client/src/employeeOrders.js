@@ -474,7 +474,7 @@ export const EmployeeOrders = () => {
                 {
                     s.ID + " | " + s.Item_Description + " | " + s.Group_ID + " | -> " + s.Qty + " (-$" + s.Cost + ") ::: " + s.Status 
                 }
-                <input type="submit" value={supplyButton(s.Status, s.group)} disabled={s.Status === "COMPLETE"} onClick={() => toggleSupply(s.ID, s.Status, s.Group_ID)}>
+                <input type="submit" value={supplyButton(s.Status, s.Group_ID)} disabled={s.Status === "COMPLETE"} onClick={() => toggleSupply(s.ID, s.Status, s.Group_ID)}>
                 </input>
                 </div>
             )}
