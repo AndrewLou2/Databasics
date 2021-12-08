@@ -7,7 +7,7 @@ const port = 80;
 
 const makeSqlString = (arr, isString) => {
     let out = ``;
-    if (arr.length == 0) return out;
+    try {if (arr.length == 0) return out;} catch (err) {return out;}
     for (let i = 0; i < arr.length; i++) {
         if (isString) 
             out += `"`+arr[i]+`",`;
@@ -32,7 +32,6 @@ app.use((req,res,next) => {
         const conn = newConnection();
         let table;
         user.customer? table = "Customers" : table = "Employees";
-        console.log(table);
         conn.query(
             `
             SELECT * FROM ${table}
@@ -41,11 +40,9 @@ app.use((req,res,next) => {
             , (err, rows, fields) => {
                 if (err) console.log(err);
                 else if (rows.length > 0) {
-                    console.log(rows);
                     checkedUser = {user: rows[0].username, password:rows[0].password, customer:user.customer, id:rows[0].ID};
                 }
                 req.user = checkedUser;
-                console.log(req.user);
                 next();
             });
         conn.end();
@@ -62,7 +59,7 @@ app.post('/db/productlist', (req, res, err) => {
     if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
     let size = makeSqlString(filter.size, false);
     if (filter.size.length == 0) size = `Size`;
-    let gauge = makeSqlString(filter.category, false);
+    let gauge = makeSqlString(filter.gauge, false);
     if (filter.gauge.length == 0) gauge = `Gauge`;
     let rm = makeSqlString(filter.material, true);
     if (filter.material.length == 0) rm = `RM_Group`;
@@ -70,8 +67,6 @@ app.post('/db/productlist', (req, res, err) => {
     if (filter.groupID.length == 0) groupid = `Group_ID`;
     let uom = makeSqlString(filter.uom, true);
     if (filter.uom.length == 0) uom = `UOM`;
-    if (!Object.keys(req.user).length == 0) req.user.customer? groupid = "FG" : groupid = groupid;
-    else groupid = `"FG"`;
 
     const conn = newConnection();
     conn.query(
@@ -79,7 +74,7 @@ app.post('/db/productlist', (req, res, err) => {
         SELECT ID, Item_Description, Price, Category, Sub_Category, Size, Gauge, RM_Group FROM Materials
         WHERE Category in (${category}) and Sub_Category in (${sub_category}) and Size in (${size}) and Gauge in (${gauge}) and RM_Group in (${rm}) and Group_ID in (${groupid}) and UOM in (${uom});
         `, (err, rows, fields) => {
-            console.log(err);
+            if (err) console.log(err);
             res.send(JSON.stringify(rows))
         }
     );
@@ -87,29 +82,32 @@ app.post('/db/productlist', (req, res, err) => {
 })
 
 app.post('/db/listcategory', (req, res, err) => {
-    console.log(req.body.filter);
     let filter = req.body.filter;
-    let category = `m2.Category`;
+    let category = `Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
-    if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
+    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
     let size = makeSqlString(filter.size, false);
-    if (filter.size.length == 0) size = `m2.Size`;
-    let gauge = makeSqlString(filter.category, false);
-    if (filter.gauge.length == 0) gauge = `m2.Gauge`;
+    if (filter.size.length == 0) size = `Size`;
+    let gauge = makeSqlString(filter.gauge, false);
+    if (filter.gauge.length == 0) gauge = `Gauge`;
     let rm = makeSqlString(filter.material, true);
-    if (filter.material.length == 0) rm = `m2.RM_Group`;
+    if (filter.material.length == 0) rm = `RM_Group`;
     let groupid = makeSqlString(filter.groupID, true);
-    if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+    if (filter.groupID.length == 0) groupid = `Group_ID`;
     let uom = makeSqlString(filter.uom, true);
-    if (filter.uom.length == 0) uom = `m2.UOM`;
-    console.log(sub_category);
+    if (filter.uom.length == 0) uom = `UOM`;
     const conn = newConnection();
     conn.query(
         `
-        SELECT m.Category, sum(EXISTS(SELECT * FROM Materials m2
-            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-            Where m.Group_ID = "FG"
-            Group by m.Category;
+        SELECT Category, count(ID) Available From Materials
+            WHERE (Category in (${category}) or Category IS NULL) 
+            and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+            and (Size in (${size}) or Size IS NULL) 
+            and (Gauge in (${gauge}) or Gauge IS NULL) 
+            and (RM_Group in (${rm}) or RM_Group IS NULL) 
+            and (Group_ID in (${groupid}) or Group_ID IS NULL)
+            and (UOM in (${uom}) or UOM IS NULL)
+            Group by Category;
         
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
@@ -119,26 +117,31 @@ app.post('/db/listcategory', (req, res, err) => {
 app.post('/db/listsubcategory', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
-    if (filter.category.length == 0) category = `m2.Category`;
-    let sub_category = `m2.Sub_Category`;
+    if (filter.category.length == 0) category = `Category`;
+    let sub_category = `Sub_Category`;
     let size = makeSqlString(filter.size, false);
-    if (filter.size.length == 0) size = `m2.Size`;
-    let gauge = makeSqlString(filter.category, false);
-    if (filter.gauge.length == 0) gauge = `m2.Gauge`;
+    if (filter.size.length == 0) size = `Size`;
+    let gauge = makeSqlString(filter.gauge, false);
+    if (filter.gauge.length == 0) gauge = `Gauge`;
     let rm = makeSqlString(filter.material, true);
-    if (filter.material.length == 0) rm = `m2.RM_Group`;
+    if (filter.material.length == 0) rm = `RM_Group`;
     let groupid = makeSqlString(filter.groupID, true);
-    if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+    if (filter.groupID.length == 0) groupid = `Group_ID`;
     let uom = makeSqlString(filter.uom, true);
-    if (filter.uom.length == 0) uom = `m2.UOM`;
+    if (filter.uom.length == 0) uom = `UOM`;
 
     const conn = newConnection();
     conn.query(
         `
-        SELECT m.Sub_Category, sum(EXISTS(SELECT * FROM Materials m2
-            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-            Where m.Group_ID = "FG"
-            Group by m.Sub_Category;
+        SELECT Sub_Category, count(ID) Available From Materials
+            WHERE (Category in (${category}) or Category IS NULL) 
+            and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+            and (Size in (${size}) or Size IS NULL) 
+            and (Gauge in (${gauge}) or Gauge IS NULL) 
+            and (RM_Group in (${rm}) or RM_Group IS NULL) 
+            and (Group_ID in (${groupid}) or Group_ID IS NULL)
+            and (UOM in (${uom}) or UOM IS NULL)
+            Group by Sub_Category;
         
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
@@ -148,26 +151,31 @@ app.post('/db/listsubcategory', (req, res, err) => {
 app.post('/db/listsize', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
-    if (filter.category.length == 0) category = `m2.Category`;
+    if (filter.category.length == 0) category = `Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
-    if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
-    let size = `m2.Size`;
-    let gauge = makeSqlString(filter.category, false);
-    if (filter.gauge.length == 0) gauge = `m2.Gauge`;
+    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
+    let size = `Size`;
+    let gauge = makeSqlString(filter.gauge, false);
+    if (filter.gauge.length == 0) gauge = `Gauge`;
     let rm = makeSqlString(filter.material, true);
-    if (filter.material.length == 0) rm = `m2.RM_Group`;
+    if (filter.material.length == 0) rm = `RM_Group`;
     let groupid = makeSqlString(filter.groupID, true);
-    if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+    if (filter.groupID.length == 0) groupid = `Group_ID`;
     let uom = makeSqlString(filter.uom, true);
-    if (filter.uom.length == 0) uom = `m2.UOM`;
+    if (filter.uom.length == 0) uom = `UOM`;
 
     const conn = newConnection();
     conn.query(
         `
-        SELECT m.Size, sum(EXISTS(SELECT * FROM Materials m2
-            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-            Where m.Group_ID = "FG"
-            Group by m.Size;
+        SELECT Size, count(ID) Available From Materials
+        WHERE (Category in (${category}) or Category IS NULL) 
+        and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+        and (Size in (${size}) or Size IS NULL) 
+        and (Gauge in (${gauge}) or Gauge IS NULL) 
+        and (RM_Group in (${rm}) or RM_Group IS NULL) 
+        and (Group_ID in (${groupid}) or Group_ID IS NULL)
+        and (UOM in (${uom}) or UOM IS NULL)
+        Group by Size;
         
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
@@ -177,26 +185,31 @@ app.post('/db/listsize', (req, res, err) => {
 app.post('/db/listgauge', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
-    if (filter.category.length == 0) category = `m2.Category`;
+    if (filter.category.length == 0) category = `Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
-    if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
+    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
     let size = makeSqlString(filter.size, false);
-    if (filter.size.length == 0) size = `m2.Size`;
-    let gauge = `m2.Gauge`;
+    if (filter.size.length == 0) size = `Size`;
+    let gauge = `Gauge`;
     let rm = makeSqlString(filter.material, true);
-    if (filter.material.length == 0) rm = `m2.RM_Group`;
+    if (filter.material.length == 0) rm = `RM_Group`;
     let groupid = makeSqlString(filter.groupID, true);
-    if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+    if (filter.groupID.length == 0) groupid = `Group_ID`;
     let uom = makeSqlString(filter.uom, true);
-    if (filter.uom.length == 0) uom = `m2.UOM`;
+    if (filter.uom.length == 0) uom = `UOM`;
 
     const conn = newConnection();
     conn.query(
         `
-        SELECT m.Gauge, sum(EXISTS(SELECT * FROM Materials m2
-            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-            Where m.Group_ID = "FG"
-            Group by m.Gauge;
+        SELECT Gauge, count(ID) Available From Materials
+        WHERE (Category in (${category}) or Category IS NULL) 
+        and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+        and (Size in (${size}) or Size IS NULL) 
+        and (Gauge in (${gauge}) or Gauge IS NULL) 
+        and (RM_Group in (${rm}) or RM_Group IS NULL) 
+        and (Group_ID in (${groupid}) or Group_ID IS NULL)
+        and (UOM in (${uom}) or UOM IS NULL)
+        Group by Gauge;
         
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
@@ -206,26 +219,31 @@ app.post('/db/listgauge', (req, res, err) => {
 app.post('/db/listproductrm', (req, res, err) => {
     let filter = req.body.filter;
     let category = makeSqlString(filter.category, true);
-    if (filter.category.length == 0) category = `m2.Category`;
+    if (filter.category.length == 0) category = `Category`;
     let sub_category = makeSqlString(filter.sub_category, true);
-    if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
+    if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
     let size = makeSqlString(filter.size, false);
-    if (filter.size.length == 0) size = `m2.Size`;
-    let gauge = makeSqlString(filter.category, false);
-    if (filter.gauge.length == 0) gauge = `m2.Gauge`;
-    let rm = `m2.RM_Group`;
+    if (filter.size.length == 0) size = `Size`;
+    let gauge = makeSqlString(filter.gauge, false);
+    if (filter.gauge.length == 0) gauge = `Gauge`;
+    let rm = `RM_Group`;
     let groupid = makeSqlString(filter.groupID, true);
-    if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+    if (filter.groupID.length == 0) groupid = `Group_ID`;
     let uom = makeSqlString(filter.uom, true);
-    if (filter.uom.length == 0) uom = `m2.UOM`;
+    if (filter.uom.length == 0) uom = `UOM`;
 
     const conn = newConnection();
     conn.query(
         `
-        SELECT m.RM_Group, sum(EXISTS(SELECT * FROM Materials m2
-            WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-            Where m.Group_ID = "FG"
-            Group by m.RM_Group;
+        SELECT RM_Group, count(ID) Available From Materials
+        WHERE (Category in (${category}) or Category IS NULL) 
+        and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+        and (Size in (${size}) or Size IS NULL) 
+        and (Gauge in (${gauge}) or Gauge IS NULL) 
+        and (RM_Group in (${rm}) or RM_Group IS NULL) 
+        and (Group_ID in (${groupid}) or Group_ID IS NULL)
+        and (UOM in (${uom}) or UOM IS NULL)
+        Group by RM_Group;
         
         `, (err, rows, fields) => res.send(JSON.stringify(rows))
     );
@@ -253,7 +271,6 @@ app.post('/db/register', (req, res, err) => {
 });
 
 app.post('/db/login', (req, res, err) => {
-    console.log(req.user)
     let user = req.user;
     if (Object.keys(req.user).length != 0) res.send(user);
     else res.send(false);
@@ -262,7 +279,6 @@ app.post('/db/login', (req, res, err) => {
 app.post('/db/orderHistory', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else {
-        console.log(req.body.filter);
         let filter = req.body.filter;
         let category = makeSqlString(filter.category, true);
         if (filter.category.length == 0) category = `m.Category`;
@@ -300,9 +316,10 @@ app.post('/db/placeorder', (req, res, err) => {
                 `
                 INSERT INTO Demand_Orders (Material, Qty, Price, Customer, Order_Date)
                 Select ID, ${qty}, ${qty}*Price, ${id}, curdate()
-                from Materials where ID = ${material};
+                from Materials where ID = ${material}
+                and Group_ID = "FG"
                 `, (err, rows, fields) => {
-                    if (err) res.send(JSON.stringify(false))
+                    if (err || rows.affectedRows == 0) res.send(JSON.stringify(false))
                     else res.send(JSON.stringify(true));
                 }
             )
@@ -310,13 +327,35 @@ app.post('/db/placeorder', (req, res, err) => {
             conn.query(
                 `
                 INSERT INTO Demand_Orders (Material, Qty, Price, Ordered_By, Order_Date)
-                Select (ID, ${qty}, ${qty}*Price, ${id}, curdate())
+                Select ID, ${qty}, ${qty}*Price, ${id}, curdate()
                 from Materials where ID = ${material};
                 `, (err, rows, fields) => {
                     if (err) res.send(JSON.stringify(false))
                     else res.send(JSON.stringify(true));
                 }
             );
+        conn.end();
+    }
+})
+
+app.post('/db/createsupply', (req, res, err) => {
+    if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
+    else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
+    else {
+        let id = req.user.id;
+        let material = req.body.materialid;
+        let qty = req.body.qty;
+        const conn = newConnection();
+            conn.query(
+                `
+                INSERT INTO Supply_Orders (Material, Qty, Ordered_By, Order_Date)
+                VALUES (${material}, ${qty}, ${id}, curdate())
+                `, (err, rows, fields) => {
+                    console.log(rows.affectedRows);
+                    if (err) {console.log(err);res.send(JSON.stringify(false))}
+                    else res.send(JSON.stringify(true));
+                }
+            )
         conn.end();
     }
 })
@@ -333,7 +372,7 @@ app.post('/db/demandlist', (req, res, err) => {
         if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
         if (filter.size.length == 0) size = `m.Size`;
-        let gauge = makeSqlString(filter.category, false);
+        let gauge = makeSqlString(filter.gauge, false);
         if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
         if (filter.material.length == 0) rm = `m.RM_Group`;
@@ -351,10 +390,22 @@ app.post('/db/demandlist', (req, res, err) => {
         const conn = newConnection();
         conn.query(
             `
-            SELECT d.ID, m.Item_Description, d.Qty, d.Price, d.Status, d.Customer, d.Ordered_By FROM Demand_Orders d
+            SELECT d.ID, m.Item_Description, m.Group_ID, d.Qty, d.Price, d.Status, d.Customer, d.Ordered_By FROM Demand_Orders d
             INNER JOIN Materials m on m.ID = d.Material
-            WHERE (d.Customer in (${customer}) or d.Ordered_By in (${ordered_by}) and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm}) and m.Group_ID in (${groupid}) and m.UOM in (${uom}) and d.Statusin(${status})
-            `, (err, rows, fields) => res.send(JSON.stringify(rows))
+            WHERE (d.Customer in (${customer}) or d.Ordered_By in (${ordered_by})) 
+            and d.Status in (${status}) 
+            and (Category in (${category}) or Category IS NULL) 
+            and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+            and (Size in (${size}) or Size IS NULL) 
+            and (Gauge in (${gauge}) or Gauge IS NULL) 
+            and (RM_Group in (${rm}) or RM_Group IS NULL) 
+            and (Group_ID in (${groupid}) or Group_ID IS NULL) 
+            and (UOM in (${uom}) or UOM IS NULL)
+            `, (err, rows, fields) =>{
+                if (err) console.log(err);
+                 res.send(JSON.stringify(rows));
+                
+            }
         );
         conn.end();
     }
@@ -367,19 +418,19 @@ app.post('/db/listdemandstatus', (req, res, err) => {
         let filter = req.body.filter;
         let demandfilter = req.body.demandfilter;
         let category = makeSqlString(filter.category, true);
-        if (filter.category.length == 0) category = `m2.Category`;
+        if (filter.category.length == 0) category = `m.Category`;
         let sub_category = makeSqlString(filter.sub_category, true);
-        if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
+        if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
-        if (filter.size.length == 0) size = `m2.Size`;
-        let gauge = makeSqlString(filter.category, false);
-        if (filter.gauge.length == 0) gauge = `m2.Gauge`;
+        if (filter.size.length == 0) size = `m.Size`;
+        let gauge = makeSqlString(filter.gauge, false);
+        if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
-        if (filter.material.length == 0) rm = `m2.RM_Group`;
+        if (filter.material.length == 0) rm = `m.RM_Group`;
         let groupid = makeSqlString(filter.groupID, true);
-        if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+        if (filter.groupID.length == 0) groupid = `m.Group_ID`;
         let uom = makeSqlString(filter.uom, true);
-        if (filter.uom.length == 0) uom = `m2.UOM`;
+        if (filter.uom.length == 0) uom = `m.UOM`;
         let ordered_by = makeSqlString(demandfilter.ordered_by, false)
         if (demandfilter.ordered_by.length == 0) ordered_by = `d.Ordered_By`
         let customer = makeSqlString(demandfilter.customer, true)
@@ -387,11 +438,16 @@ app.post('/db/listdemandstatus', (req, res, err) => {
         const conn = newConnection();
         conn.query(
             `
-            SELECT d.Status, sum(EXISTS(SELECT * FROM Demand_Orders d2
-                INNER JOIN Materials m2 on m2.ID = d2.Material
-                WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM demand_orders d
-                WHERE (d.Customer in (${customer}) or d.Ordered_By in (${ordered_by})
-                Group by d.status;
+            SELECT d.Status, count(d.ID) Available From Demand_Orders d
+            INNER JOIN Materials m
+            WHERE (m.Category in (${category}) or m.Category IS NULL) 
+            and (m.Sub_Category in (${sub_category}) or m.Sub_Category IS NULL) 
+            and (m.Size in (${size}) or m.Size IS NULL) 
+            and (m.Gauge in (${gauge}) or m.Gauge IS NULL) 
+            and (m.RM_Group in (${rm}) or m.RM_Group IS NULL) 
+            and (m.Group_ID in (${groupid}) or m.Group_ID IS NULL)
+            and (m.UOM in (${uom}) or m.UOM IS NULL)
+            Group by d.Status;
             `, (err, rows, fields) => res.send(JSON.stringify(rows))
         );
         conn.end();
@@ -402,14 +458,14 @@ app.post('/db/approvedemand', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let demandID = req.user.demandID;
+        let id = req.user.id;
+        let demandID = req.body.demandID;
         const conn = newConnection();
         conn.query(
             `
-            UPDATE Demand_Orders SET Status="OPEN", Approved_By=${id} where ID = ${demandID} and Status="Closed" and (SELECT approve_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
+            UPDATE Demand_Orders SET Status="OPEN", Approved_By=${id} where ID = ${demandID} and Status="NEW" and (SELECT approve_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false))
+                if (err || rows.affectedRows == 0) res.send(JSON.stringify(false))
                 else res.send(JSON.stringify(true));
             }
         );
@@ -421,8 +477,8 @@ app.post('/db/completedemand', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {    
-        let id = req.user.ID;
-        let demandID = req.user.demandID;
+        let id = req.user.id;
+        let demandID = req.body.demandID;
         const conn = newConnection();
         conn.query(
             `
@@ -446,7 +502,6 @@ app.post('/db/completedemand', (req, res, err) => {
                 }
             }
         );
-        conn.end();
     }
 })
 
@@ -538,7 +593,7 @@ app.post('/db/inventorydemand', (req, res, err) => {
         if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
         if (filter.size.length == 0) size = `m.Size`;
-        let gauge = makeSqlString(filter.category, false);
+        let gauge = makeSqlString(filter.gauge, false);
         if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
         if (filter.material.length == 0) rm = `m.RM_Group`;
@@ -567,14 +622,14 @@ app.post('/db/stagedemand', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let demandID = req.user.demandID;
+        let id = req.user.id;
+        let demandID = req.body.demandID;
         const conn = newConnection();
         conn.query(
             `
-            UPDATE Demand_Orders SET Status="STAGED", where ID = ${demandID} and Status="OPEN" and (SELECT stage_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
+            UPDATE Demand_Orders d INNER JOIN Materials m on m.ID = d.Material SET Status="STAGED" where m.Stock > d.Qty and d.ID = ${demandID} and d.Status="OPEN" and (SELECT stage_demand from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false));
+                if (err || rows.affectedRows == 0) res.send(JSON.stringify(false));
                 else {
                     conn.query(
                         `
@@ -584,7 +639,7 @@ app.post('/db/stagedemand', (req, res, err) => {
                             m.Stock=m.Stock-d.Qty
                         WHERE d.ID = ${demandID};
                         `, (err, rows, fields) => {
-                            if (err) res.send(JSON.stringify(false));
+                            if (err ) res.send(JSON.stringify(false));
                             else res.send(JSON.stringify(true));
                         }
                     );
@@ -607,7 +662,7 @@ app.post('/db/supplylist', (req, res, err) => {
         if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
         if (filter.size.length == 0) size = `m.Size`;
-        let gauge = makeSqlString(filter.category, false);
+        let gauge = makeSqlString(filter.gauge, false);
         if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
         if (filter.material.length == 0) rm = `m.RM_Group`;
@@ -619,13 +674,24 @@ app.post('/db/supplylist', (req, res, err) => {
         if (supplyfilter.ordered_by.length == 0) ordered_by = `s.Ordered_By`;
         let status = makeSqlString(supplyfilter.status, true)
         if (supplyfilter.status.length == 0) status = `s.Status`
+        let vendor = makeSqlString(supplyfilter.vendor, false)
+        if (supplyfilter.vendor.length == 0) vendor = `s.Vendor`
 
         const conn = newConnection();
         conn.query(
             `
-            SELECT s.ID, m.Item_Description, s.Qty, s.Cost, s.Status, s.Ordered_By FROM Supply_Orders s
+            SELECT s.ID, m.Item_Description, m.Group_ID, s.Qty, s.Cost, s.Status, s.Ordered_By FROM Supply_Orders s
             INNER JOIN Materials m on m.ID = s.Material
-            WHERE s.Ordered_By in (${ordered_by} and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm}) and m.Group_ID in (${groupid}) and m.UOM in (${uom}) and d.Status in ${status})
+            WHERE s.Ordered_By in (${ordered_by}) 
+            and (s.Vendor in (${vendor}) or s.Vendor IS NULL) 
+            and (m.Category in (${category}) or m.Category IS NULL) 
+            and (m.Sub_Category in (${sub_category}) or m.Sub_Category IS NULL) 
+            and (m.Size in (${size}) or m.Size IS NULL) 
+            and (m.Gauge in (${gauge}) or m.Gauge IS NULL) 
+            and (m.RM_Group in (${rm}) or m.RM_Group IS NULL) 
+            and (m.Group_ID in (${groupid}) or m.Group_ID IS NULL)
+            and (m.UOM in (${uom}) or m.UOM IS NULL)
+            and s.Status in (${status})
             `, (err, rows, fields) => res.send(JSON.stringify(rows))
         );
         conn.end();
@@ -639,30 +705,35 @@ app.post('/db/listsupplystatus', (req, res, err) => {
         let filter = req.body.filter;
         let supplyfilter = req.body.supplyfilter;
         let category = makeSqlString(filter.category, true);
-        if (filter.category.length == 0) category = `m2.Category`;
+        if (filter.category.length == 0) category = `m.Category`;
         let sub_category = makeSqlString(filter.sub_category, true);
-        if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
+        if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
-        if (filter.size.length == 0) size = `m2.Size`;
-        let gauge = makeSqlString(filter.category, false);
-        if (filter.gauge.length == 0) gauge = `m2.Gauge`;
+        if (filter.size.length == 0) size = `m.Size`;
+        let gauge = makeSqlString(filter.gauge, false);
+        if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
-        if (filter.material.length == 0) rm = `m2.RM_Group`;
+        if (filter.material.length == 0) rm = `m.RM_Group`;
         let groupid = makeSqlString(filter.groupID, true);
-        if (filter.groupID.length == 0) groupid = `m2.Group_ID`;
+        if (filter.groupID.length == 0) groupid = `m.Group_ID`;
         let uom = makeSqlString(filter.uom, true);
-        if (filter.uom.length == 0) uom = `m2.UOM`;
+        if (filter.uom.length == 0) uom = `m.UOM`;
         let ordered_by = makeSqlString(supplyfilter.ordered_by, false)
         if (supplyfilter.ordered_by.length == 0) ordered_by = `s.Ordered_By`;
 
         const conn = newConnection();
         conn.query(
             `
-            SELECT s.Status, sum(EXISTS(SELECT * FROM Supply_Orders s2
-                INNER JOIN Materials m2 on m2.ID = s2.Material
-                WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Supply_Orders s
-                WHERE s.Ordered_By in (${ordered_by})
-                GROUP BY s.Status
+            SELECT s.Status, count(s.ID) Available From Supply_Orders s
+            INNER JOIN Materials m
+            WHERE (m.Category in (${category}) or m.Category IS NULL) 
+            and (m.Sub_Category in (${sub_category}) or m.Sub_Category IS NULL) 
+            and (m.Size in (${size}) or m.Size IS NULL) 
+            and (m.Gauge in (${gauge}) or m.Gauge IS NULL) 
+            and (m.RM_Group in (${rm}) or m.RM_Group IS NULL) 
+            and (m.Group_ID in (${groupid}) or m.Group_ID IS NULL)
+            and (m.UOM in (${uom}) or m.UOM IS NULL)
+            Group by s.Status;
             `, (err, rows, fields) => res.send(JSON.stringify(rows))
         );
         conn.end();
@@ -673,12 +744,12 @@ app.post('/db/approvesupply', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let supplyID = req.user.supplyID;
+        let id = req.user.id;
+        let supplyID = req.body.supplyID;
         const conn = newConnection();
         conn.query(
             `
-            UPDATE Supply_Orders SET Status="OPEN", where ID = ${supplyID} and Status="NEW" and (SELECT approve_supply from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
+            UPDATE Supply_Orders SET Status="OPEN" where ID = ${supplyID} and Status="NEW" and (SELECT approve_supply from Employees INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights where Employees.ID = ${id});
             `, (err, rows, fields) => {
                 if (err) res.send(JSON.stringify(false))
                 else res.send(JSON.stringify(true));
@@ -692,8 +763,8 @@ app.post('/db/checkmaterialavailability', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let supplyID = req.user.supplyID;
+        let id = req.user.id;
+        let supplyID = req.body.supplyID;
         const conn = newConnection();
         conn.query(
             `
@@ -714,8 +785,8 @@ app.post('/db/producesupply', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let supplyID = req.user.supplyID;
+        let id = req.user.id;
+        let supplyID = req.body.supplyID;
         const conn = newConnection();
         conn.query(
             `
@@ -731,7 +802,7 @@ app.post('/db/producesupply', (req, res, err) => {
                 INNER JOIN materials m2 on b.Child
                 WHERE b.Qty*s.Qty > m2.Stock and s.Material = b.Finished_Good);
             `, (err, rows, fields) => {
-                if (err) res.send(JSON.stringify(false));
+                if (err) {console.log(err);res.send(JSON.stringify(false));}
                 else {
                     conn.query(
                         `
@@ -758,7 +829,6 @@ app.post('/db/producesupply', (req, res, err) => {
                             }
                         }
                     );
-                    conn.end();
                 }
             }
         );
@@ -769,8 +839,8 @@ app.post('/db/ordersupply', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let supplyID = req.user.supplyID;
+        let id = req.user.id;
+        let supplyID = req.body.supplyID;
         const conn = newConnection();
         conn.query(
             `
@@ -794,15 +864,15 @@ app.post('/db/completesupply', (req, res, err) => {
     if (Object.keys(req.user).length == 0) res.send(JSON.stringify("Access Denied"));
     else if (req.user.customer) res.send(JSON.stringify("No Customers allowed"));
     else {
-        let id = req.user.ID;
-        let supplyID = req.user.supplyID;
+        let id = req.user.id;
+        let supplyID = req.body.supplyID;
         const conn = newConnection();
         conn.query(
             `
             UPDATE Supply_Orders as s
             INNER JOIN materials m on s.Material = m.ID
             SET
-            s.Cost = if(true, 
+            s.Cost = if(Status = "ORDERED", 
             (select vi2.cost from vendor_items vi2 where vi2.item = m.ID order by cost Asc limit 1)*s.Qty, null), 
             s.Vendor = if(Status = "ORDERED", 
             (select vi2.vendor from vendor_items vi2 where vi2.item = m.ID order by cost asc limit 1), null),
@@ -811,6 +881,7 @@ app.post('/db/completesupply', (req, res, err) => {
             and (SELECT complete_supply FROM Employees 
             INNER JOIN User_Rights on User_Rights.ID = Employees.User_Rights WHERE Employees.ID = ${id});
             `, (err, rows, fields) => {
+                console.log(err);
                 if (err) res.send(JSON.stringify(false));
                 else {
                     conn.query(
@@ -829,7 +900,6 @@ app.post('/db/completesupply', (req, res, err) => {
                 }
             }
         );
-        conn.end();
     }
 })
 
@@ -844,7 +914,7 @@ app.post('/db/materials', (req, res, err) => {
         if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
         let size = makeSqlString(filter.size, false);
         if (filter.size.length == 0) size = `Size`;
-        let gauge = makeSqlString(filter.category, false);
+        let gauge = makeSqlString(filter.gauge, false);
         if (filter.gauge.length == 0) gauge = `Gauge`;
         let rm = makeSqlString(filter.material, true);
         if (filter.material.length == 0) rm = `RM_Group`;
@@ -852,13 +922,12 @@ app.post('/db/materials', (req, res, err) => {
         if (filter.groupID.length == 0) groupid = `Group_ID`;
         let uom = makeSqlString(filter.uom, true);
         if (filter.uom.length == 0) uom = `UOM`;
-
         const conn = newConnection();
         conn.query(
             `
             SELECT * from Materials 
-            WHERE Category in (${category}) and Sub_Category in (${sub_category}) and Size in (${size}) and Gauge in (${gauge}) and RM_Group in (${rm}) and Group_ID in (${groupid}) and UOM in (${uom})
-            `, (err, rows, fields) => res.send(JSON.stringify(rows))
+            WHERE (Category in (${category}) or Category IS NULL) and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) and (Size in (${size}) or Size IS NULL) and (Gauge in (${gauge}) or Gauge IS NULL) and (RM_Group in (${rm}) or RM_Group IS NULL) and (Group_ID in (${groupid}) or Group_ID IS NULL) and (UOM in (${uom}) or UOM IS NULL)
+            `, (err, rows, fields) => {res.send(JSON.stringify(rows))}
         );
         conn.end();
     }
@@ -870,25 +939,31 @@ app.post('/db/listgroupids', (req, res, err) => {
     else {
         let filter = req.body.filter;
         let category = makeSqlString(filter.category, true);
-        if (filter.category.length == 0) category = `m2.Category`;
+        if (filter.category.length == 0) category = `Category`;
         let sub_category = makeSqlString(filter.sub_category, true);
-        if (filter.sub_category.length == 0) sub_category = `m2.Sub_Category`;
+        if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
         let size = makeSqlString(filter.size, false);
-        if (filter.size.length == 0) size = `m2.Size`;
-        let gauge = makeSqlString(filter.category, false);
-        if (filter.gauge.length == 0) gauge = `m2.Gauge`;
+        if (filter.size.length == 0) size = `Size`;
+        let gauge = makeSqlString(filter.gauge, false);
+        if (filter.gauge.length == 0) gauge = `Gauge`;
         let rm = makeSqlString(filter.material, true);
-        if (filter.material.length == 0) rm = `m2.RM_Group`;
-        let groupid = `m2.Group_ID`;
+        if (filter.material.length == 0) rm = `RM_Group`;
+        let groupid = `Group_ID`;
         let uom = makeSqlString(filter.uom, true);
-        if (filter.uom.length == 0) uom = `m2.UOM`;
+        if (filter.uom.length == 0) uom = `UOM`;
 
         const conn = newConnection();
         conn.query(
             `
-            SELECT m.Group_ID, sum(EXISTS(SELECT * FROM Materials m2
-                WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-                Group by m.Group_ID;
+            SELECT Group_ID, count(ID) Available From Materials
+            WHERE (Category in (${category}) or Category IS NULL) 
+            and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+            and (Size in (${size}) or Size IS NULL) 
+            and (Gauge in (${gauge}) or Gauge IS NULL) 
+            and (RM_Group in (${rm}) or RM_Group IS NULL) 
+            and (Group_ID in (${groupid}) or Group_ID IS NULL)
+            and (UOM in (${uom}) or UOM IS NULL)
+            Group by Group_ID;
             
             `, (err, rows, fields) => res.send(JSON.stringify(rows))
         );
@@ -906,22 +981,26 @@ app.post('/db/listgroupids', (req, res, err) => {
         if (filter.sub_category.length == 0) sub_category = `Sub_Category`;
         let size = makeSqlString(filter.size, false);
         if (filter.size.length == 0) size = `Size`;
-        let gauge = makeSqlString(filter.category, false);
+        let gauge = makeSqlString(filter.gauge, false);
         if (filter.gauge.length == 0) gauge = `Gauge`;
         let rm = makeSqlString(filter.material, true);
         if (filter.material.length == 0) rm = `RM_Group`;
         let groupid = makeSqlString(filter.groupID, true);
         if (filter.groupID.length == 0) groupid = `Group_ID`;
-        let uom = makeSqlString(filter.uom, true);
-        if (filter.uom.length == 0) uom = `UOM`;
+        let uom = `UOM`;
 
         const conn = newConnection();
         conn.query(
             `
-            SELECT m.Group_ID, sum(EXISTS(SELECT * FROM Materials m2
-                WHERE m2.Category in (${category}) and m2.Sub_Category in (${sub_category}) and m2.Size in (${size}) and m2.Gauge in (${gauge}) and m2.RM_Group in (${rm}) and m2.Group_ID in (${groupid}) and m2.UOM in (${uom}))) as Available FROM Materials m
-                Group by m.Group_ID;
-            
+            SELECT UOM, count(ID) Available From Materials
+            WHERE (Category in (${category}) or Category IS NULL) 
+            and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) 
+            and (Size in (${size}) or Size IS NULL) 
+            and (Gauge in (${gauge}) or Gauge IS NULL) 
+            and (RM_Group in (${rm}) or RM_Group IS NULL) 
+            and (Group_ID in (${groupid}) or Group_ID IS NULL)
+            and (UOM in (${uom}) or UOM IS NULL)
+            Group by UOM;
             `, (err, rows, fields) => res.send(JSON.stringify(rows))
         );
         conn.end();
@@ -936,9 +1015,9 @@ app.post('/db/breakdown', (req, res, err) => {
         conn.query(
             `
             select * from (
-                with recursive receipt(n, FG, FG_txt, Parent, Parent_txt, Child, Child_txt, Qty, UOM, Scrap, Price,Group) as 
+                with recursive receipt(n, FG, FG_txt, Parent, Parent_txt, Child, Child_txt, Qty, UOM, Scrap, Price, Group_ID) as
                 (
-                    select 0 n, m.ID FG, m.Item_Description FG_txt, m.ID Parent, m.Item_Description Parent_txt, null Child, null Child_txt, 1 QTY, m.UOM, 0.00 Scrap, m.Price, m.Group_ID Group From materials m
+                    select 0, m.ID, m.Item_Description, m.ID, m.Item_Description, null, null, 1, m.UOM, 0.00, m.Price, m.Group_ID From materials m
                     union all
                     select 1, m.ID, m.Item_Description, m.ID, m.Item_Description, m2.ID, m2.Item_Description, b.Qty, m2.UOM, b.Scrap, m2.Price, m2.Group_ID From Bill_Of_Materials b
                     inner join Materials m on b.Finished_Good = m.ID
@@ -970,7 +1049,7 @@ app.post('/db/orderedsupply', (req, res, err) => {
         if (filter.sub_category.length == 0) sub_category = `m.Sub_Category`;
         let size = makeSqlString(filter.size, false);
         if (filter.size.length == 0) size = `m.Size`;
-        let gauge = makeSqlString(filter.category, false);
+        let gauge = makeSqlString(filter.gauge, false);
         if (filter.gauge.length == 0) gauge = `m.Gauge`;
         let rm = makeSqlString(filter.material, true);
         if (filter.material.length == 0) rm = `m.RM_Group`;
@@ -986,7 +1065,8 @@ app.post('/db/orderedsupply', (req, res, err) => {
             `
             SELECT s.ID, m.Item_Description, s.Qty, s.Cost, s.Status, s.Ordered_By FROM Supply_Orders s
             INNER JOIN Materials m on m.ID = s.Material
-            WHERE (s.Ordered_By in (${ordered_by}) and m.Category in (${category}) and m.Sub_Category in (${sub_category}) and m.Size in (${size}) and m.Gauge in (${gauge}) and m.RM_Group in (${rm}) and m.Group_ID in (${groupid}) and m.UOM in (${uom}) and d.Status = "ORDERED")
+            WHERE (s.Ordered_By in (${ordered_by}) or s.Ordered_By IS NULL) and (s.Status = "ORDERED" or s.Status IS NULL) and
+            (Category in (${category}) or Category IS NULL) and (Sub_Category in (${sub_category}) or Sub_Category IS NULL) and (Size in (${size}) or Size IS NULL) and (Gauge in (${gauge}) or Gauge IS NULL) and (RM_Group in (${rm}) or RM_Group IS NULL) and (Group_ID in (${groupid}) or Group_ID IS NULL) and (UOM in (${uom}) or UOM IS NULL)
             `, (err, rows, fields) => res.send(JSON.stringify(rows))
         );
         conn.end();

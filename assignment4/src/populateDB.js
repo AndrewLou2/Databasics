@@ -305,7 +305,7 @@ conn.query(
     , "WIP"
     , "Clasp"
     , "EA"
-    , m.RM_Group 
+    , m.Item_Description 
     from Materials m
     where m.Group_ID = "RM";
     `, (err) => {
