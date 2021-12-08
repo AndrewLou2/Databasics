@@ -490,8 +490,7 @@ app.post('/db/completedemand', (req, res, err) => {
                         `
                         UPDATE Materials m
                         INNER JOIN Demand_Orders d on d.Material = m.ID
-                        SET m.Staged=m.Staged-d.Qty,
-                            m.Stock=m.Stock-d.Qty
+                        SET m.Staged=m.Staged-d.Qty
                         WHERE d.ID = ${demandID};
                         `, (err, rows, fields) => {
                             if (err) res.send(JSON.stringify(false));
